@@ -3,56 +3,55 @@
 import { motion } from "framer-motion";
 import Container from "@/components/layout/Container";
 import {
-  FileText,
-  Brain,
-  BriefcaseBusiness,
   Bot,
-  BarChart3,
+  BrainCircuit,
+  BriefcaseBusiness,
+  FileText,
   Sparkles,
+  BarChart3,
+  ArrowUpRight,
 } from "lucide-react";
 
-const features = [
+const cards = [
   {
     title: "AI Resume Builder",
     description:
-      "Create ATS-friendly resumes in minutes using AI-powered suggestions.",
+      "Generate ATS-friendly resumes with AI suggestions tailored to every job.",
     icon: FileText,
-    gradient: "from-violet-500 to-fuchsia-500",
+    className: "lg:col-span-2 lg:row-span-2",
+    gradient: "from-violet-600/20 to-fuchsia-500/10",
   },
   {
     title: "Smart Job Matching",
     description:
-      "Discover jobs perfectly matched to your skills and experience.",
+      "Find opportunities that match your skills instantly.",
     icon: BriefcaseBusiness,
-    gradient: "from-cyan-500 to-sky-500",
+    className: "",
+    gradient: "from-cyan-500/20 to-sky-500/10",
+  },
+  {
+    title: "AI Interview Coach",
+    description:
+      "Practice HR & technical interviews with instant AI feedback.",
+    icon: Bot,
+    className: "",
+    gradient: "from-pink-500/20 to-rose-500/10",
   },
   {
     title: "Resume Analyzer",
     description:
-      "Improve your resume score and increase interview chances.",
-    icon: Brain,
-    gradient: "from-emerald-500 to-teal-500",
-  },
-  {
-    title: "AI Interview",
-    description:
-      "Practice technical and HR interviews with an AI interviewer.",
-    icon: Bot,
-    gradient: "from-pink-500 to-rose-500",
+      "Boost your ATS score with personalized recommendations.",
+    icon: BrainCircuit,
+    className: "",
+    gradient: "from-emerald-500/20 to-teal-500/10",
   },
   {
     title: "Career Analytics",
     description:
-      "Track applications, interviews and career progress.",
+      "Track applications, interviews and career growth with beautiful insights.",
     icon: BarChart3,
-    gradient: "from-orange-500 to-yellow-500",
-  },
-  {
-    title: "Cover Letter Generator",
-    description:
-      "Generate personalized cover letters in seconds.",
-    icon: Sparkles,
-    gradient: "from-indigo-500 to-violet-500",
+    className: "lg:col-span-2",
+    gradient: "from-orange-500/20 to-yellow-500/10",
   },
 ];
 
@@ -67,34 +66,37 @@ export default function Features() {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          className="text-center"
         >
-          <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-2 text-sm text-violet-300">
-            Features
-          </span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-5 py-2 text-sm text-violet-300">
+            <Sparkles className="h-4 w-4" />
+            Platform Features
+          </div>
 
-          <h2 className="mt-6 text-4xl font-black md:text-6xl">
+          <h2 className="mt-8 text-5xl font-black md:text-6xl">
             Everything You Need
-            <span className="block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="mt-2 block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
               To Get Hired Faster
             </span>
           </h2>
 
-          <p className="mt-6 max-w-3xl text-lg text-white/60">
-            JobFusion AI combines resume creation, AI career coaching,
-            interview preparation and job matching into one modern platform.
+          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/60">
+            JobFusion AI combines resume creation, interview preparation,
+            ATS optimization, analytics and smart job discovery into one
+            intelligent platform.
           </p>
         </motion.div>
 
-        <div className="mt-20 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-          {features.map((feature, index) => {
-            const Icon = feature.icon;
+        <div className="mt-20 grid auto-rows-[260px] gap-6 lg:grid-cols-3">
+          {cards.map((card, index) => {
+            const Icon = card.icon;
 
             return (
               <motion.div
-                key={feature.title}
+                key={card.title}
                 initial={{
                   opacity: 0,
-                  y: 50,
+                  y: 40,
                 }}
                 whileInView={{
                   opacity: 1,
@@ -104,31 +106,88 @@ export default function Features() {
                   once: true,
                 }}
                 transition={{
-                  delay: index * 0.1,
+                  delay: index * 0.08,
                 }}
                 whileHover={{
-                  y: -10,
+                  y: -8,
                 }}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl"
+                className={`group relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl ${card.className}`}
               >
                 <div
-                  className={`mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${feature.gradient}`}
-                >
-                  <Icon className="h-8 w-8 text-white" />
-                </div>
+                  className={`absolute inset-0 bg-gradient-to-br ${card.gradient}`}
+                />
 
-                <h3 className="text-2xl font-bold">
-                  {feature.title}
-                </h3>
+                <div className="relative flex h-full flex-col justify-between p-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
+                      <Icon className="h-8 w-8 text-white" />
+                    </div>
 
-                <p className="mt-4 leading-7 text-white/60">
-                  {feature.description}
-                </p>
+                    <ArrowUpRight className="h-6 w-6 text-white/30 transition group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-white" />
+                  </div>
 
-                <div className="absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
-                  <div
-                    className={`absolute -right-20 -top-20 h-48 w-48 rounded-full bg-gradient-to-br ${feature.gradient} opacity-10 blur-3xl`}
-                  />
+                  <div>
+                    <h3 className="text-3xl font-bold">
+                      {card.title}
+                    </h3>
+
+                    <p className="mt-4 max-w-md leading-7 text-white/65">
+                      {card.description}
+                    </p>
+                  </div>
+
+                  {card.title === "AI Resume Builder" && (
+                    <div className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-5">
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="text-sm text-white/60">
+                          ATS Score
+                        </span>
+
+                        <span className="font-bold text-emerald-400">
+                          94%
+                        </span>
+                      </div>
+
+                      <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                        <motion.div
+                          initial={{
+                            width: 0,
+                          }}
+                          whileInView={{
+                            width: "94%",
+                          }}
+                          transition={{
+                            duration: 1.4,
+                          }}
+                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {card.title === "Career Analytics" && (
+                    <div className="mt-6 flex gap-4">
+                      <div className="flex-1 rounded-2xl bg-white/10 p-4">
+                        <p className="text-xs text-white/50">
+                          Applications
+                        </p>
+
+                        <h4 className="mt-2 text-3xl font-black text-cyan-400">
+                          128
+                        </h4>
+                      </div>
+
+                      <div className="flex-1 rounded-2xl bg-white/10 p-4">
+                        <p className="text-xs text-white/50">
+                          Interviews
+                        </p>
+
+                        <h4 className="mt-2 text-3xl font-black text-violet-400">
+                          21
+                        </h4>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             );
