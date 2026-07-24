@@ -51,7 +51,8 @@ export default function ResetPasswordForm() {
   const onSubmit = (data: ResetPasswordFormValues) => {
     resetPasswordMutation.mutate({
       token,
-      password: data.password,
+      newPassword: data.password,
+      confirmPassword: data.confirmPassword,
     });
   };
 

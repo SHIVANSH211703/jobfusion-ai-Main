@@ -30,13 +30,5 @@ export default function GuestGuard({
     }
   }, [isInitialized, isAuthenticated, router]);
 
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
   return <>{children}</>;
 }

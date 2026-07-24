@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
+const sendEmail = require("../../../utils/email");
 const AppError = require("../../../utils/AppError");
+
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -54,10 +56,7 @@ class AuthService {
       throw new AppError("Invalid email or password", 401);
     }
 
-    const isMatch = await bcrypt.compare(
-      password,
-      user.password
-    );
+    const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       throw new AppError("Invalid email or password", 401);
@@ -72,10 +71,7 @@ class AuthService {
       id: user._id,
     });
 
-    await userRepository.updateRefreshToken(
-      user._id,
-      refreshToken
-    );
+    await userRepository.updateRefreshToken(user._id, refreshToken);
 
     return authDTO.authResponse(
       user,
@@ -92,8 +88,13 @@ class AuthService {
     }
 
     return authDTO.userResponse(user);
-  }   
-    async refreshToken(refreshToken) {
+  }
+
+  async refreshToken(refreshToken) {
+    if (!refreshToken) {
+      throw new AppError("Refresh token is required", 401);
+    }
+
     const decoded = verifyRefreshToken(refreshToken);
 
     const user = await userRepository.findById(decoded.id);
@@ -104,7 +105,10 @@ class AuthService {
 
     const dbUser = await userRepository.findByEmail(user.email);
 
-    if (!dbUser.refreshToken || dbUser.refreshToken !== refreshToken) {
+    if (
+      !dbUser.refreshToken ||
+      dbUser.refreshToken !== refreshToken
+    ) {
       throw new AppError("Invalid refresh token", 401);
     }
 
@@ -191,10 +195,12 @@ class AuthService {
     await userRepository.clearRefreshToken(userId);
 
     return {
-      message: "Password changed successfully. Please login again.",
+      message:
+        "Password changed successfully. Please login again.",
     };
-  }   
-    async forgotPassword(email) {
+  }
+
+  async forgotPassword(email) {
     const user = await userRepository.findByEmail(email);
 
     if (!user) {
@@ -219,13 +225,66 @@ class AuthService {
       expires
     );
 
-    // TODO:
-    // Send email containing:
-    // http://localhost:3000/reset-password?token=${resetToken}
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      process.env.CLIENT_URL ||
+      "http://localhost:3000";
+
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Reset Your JobFusion AI Password",
+      html: `
+        <div style="font-family:Arial,sans-serif;padding:24px;max-width:600px;margin:auto">
+          <h2 style="color:#7c3aed;">JobFusion AI</h2>
+
+          <p>Hello <strong>${user.name}</strong>,</p>
+
+          <p>We received a request to reset your password.</p>
+
+          <p>
+            Click the button below to choose a new password.
+          </p>
+
+          <div style="margin:30px 0">
+            <a
+              href="${resetUrl}"
+              style="
+                background:#7c3aed;
+                color:white;
+                padding:14px 28px;
+                text-decoration:none;
+                border-radius:8px;
+                display:inline-block;
+                font-weight:bold;
+              "
+            >
+              Reset Password
+            </a>
+          </div>
+
+          <p>
+            This link will expire in <strong>15 minutes</strong>.
+          </p>
+
+          <p>
+            If you didn't request this password reset,
+            you can safely ignore this email.
+          </p>
+
+          <hr style="margin:30px 0">
+
+          <small>
+            © ${new Date().getFullYear()} JobFusion AI
+          </small>
+        </div>
+      `,
+    });
 
     return {
-      message: "Password reset link generated successfully.",
-      resetToken, // Remove this in production
+      message: "Password reset email sent successfully.",
+      resetToken,
     };
   }
 

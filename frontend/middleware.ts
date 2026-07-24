@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_ROUTES = [
+const AUTH_ROUTES = [
   "/login",
   "/register",
   "/forgot-password",
   "/reset-password",
+];
+
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/profile",
+  "/jobs",
+  "/applications",
+  "/resumes",
+  "/ai-resume",
+  "/settings",
 ];
 
 export function middleware(request: NextRequest) {
@@ -12,19 +22,20 @@ export function middleware(request: NextRequest) {
 
   const token = request.cookies.get("accessToken")?.value;
 
-  const isPublicRoute = PUBLIC_ROUTES.some(
-    (route) =>
-      pathname === route || pathname.startsWith(route + "/")
+  const isAuthRoute = AUTH_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
   );
 
-  if (!token && !isPublicRoute) {
+  const isProtectedRoute = PROTECTED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
+
+  if (!token && isProtectedRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (token && isPublicRoute) {
-    return NextResponse.redirect(
-      new URL("/dashboard", request.url)
-    );
+  if (token && isAuthRoute) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
@@ -32,15 +43,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/profile/:path*",
-    "/jobs/:path*",
-    "/applications/:path*",
-    "/resumes/:path*",
-
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };

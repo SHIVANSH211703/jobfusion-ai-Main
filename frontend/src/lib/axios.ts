@@ -36,29 +36,21 @@ axiosInstance.interceptors.response.use(
   return Promise.reject(error);
 }
 
-originalRequest._retry = true; {
-      originalRequest._retry = true;
+    originalRequest._retry = true;
 
-      try {
-        await axios.post(
-          `${API.BASE_URL}${API.AUTH.REFRESH_TOKEN}`,
-          {},
-          {
-            withCredentials: true,
-          }
-        );
-
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+    try {
+      await axios.post(
+        `${API.BASE_URL}${API.AUTH.REFRESH_TOKEN}`,
+        {},
+        {
+          withCredentials: true,
         }
+      );
 
-        return Promise.reject(refreshError);
-      }
+      return axiosInstance(originalRequest);
+    } catch (refreshError) {
+      return Promise.reject(refreshError);
     }
-
-    return Promise.reject(error);
   }
 );
 
