@@ -2,20 +2,16 @@
 
 import { create } from "zustand";
 
-import { storage } from "@/lib/storage";
-
 interface AuthState {
   isAuthenticated: boolean;
   isInitialized: boolean;
 
-  accessToken: string | null;
-  refreshToken: string | null;
-
   initialize: () => void;
-
-  login: (accessToken: string, refreshToken: string) => void;
-
+  login: () => void;
   logout: () => void;
+
+  setAuthenticated: (value: boolean) => void;
+  setInitialized: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -23,39 +19,31 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   isInitialized: false,
 
-  accessToken: null,
-
-  refreshToken: null,
-
   initialize: () => {
-    const accessToken = storage.getAccessToken();
-    const refreshToken = storage.getRefreshToken();
-
     set({
-      accessToken,
-      refreshToken,
-      isAuthenticated: !!accessToken,
       isInitialized: true,
     });
   },
 
-  login: (accessToken, refreshToken) => {
-    storage.setTokens(accessToken, refreshToken);
-
+  login: () => {
     set({
-      accessToken,
-      refreshToken,
       isAuthenticated: true,
     });
   },
 
   logout: () => {
-    storage.clearTokens();
-
     set({
-      accessToken: null,
-      refreshToken: null,
       isAuthenticated: false,
     });
   },
+
+  setAuthenticated: (value) =>
+    set({
+      isAuthenticated: value,
+    }),
+
+  setInitialized: (value) =>
+    set({
+      isInitialized: value,
+    }),
 }));

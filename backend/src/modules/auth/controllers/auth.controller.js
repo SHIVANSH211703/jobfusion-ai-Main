@@ -1,14 +1,27 @@
 const asyncHandler = require("../../../utils/asyncHandler");
 const authService = require("../services/auth.service");
 
+const {
+  setAuthCookies,
+  clearAuthCookies,
+} = require("../../../utils/cookies");
+
 class AuthController {
   register = asyncHandler(async (req, res) => {
     const result = await authService.register(req.body);
 
+    setAuthCookies(
+      res,
+      result.tokens.accessToken,
+      result.tokens.refreshToken
+    );
+
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      data: result,
+      data: {
+        user: result.user,
+      },
     });
   });
 
@@ -17,10 +30,18 @@ class AuthController {
 
     const result = await authService.login(email, password);
 
+    setAuthCookies(
+      res,
+      result.tokens.accessToken,
+      result.tokens.refreshToken
+    );
+
     res.status(200).json({
       success: true,
       message: "Login successful",
-      data: result,
+      data: {
+        user: result.user,
+      },
     });
   });
 
@@ -34,18 +55,26 @@ class AuthController {
   });
 
   refreshToken = asyncHandler(async (req, res) => {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
 
     const result = await authService.refreshToken(refreshToken);
+
+    setAuthCookies(
+      res,
+      result.accessToken,
+      result.refreshToken
+    );
 
     res.status(200).json({
       success: true,
       message: "Access token refreshed successfully",
-      data: result,
     });
-  });  
-    logout = asyncHandler(async (req, res) => {
+  });
+
+  logout = asyncHandler(async (req, res) => {
     const result = await authService.logout(req.user.id);
+
+    clearAuthCookies(res);
 
     res.status(200).json({
       success: true,
@@ -62,6 +91,8 @@ class AuthController {
       newPassword
     );
 
+    clearAuthCookies(res);
+
     res.status(200).json({
       success: true,
       message: result.message,
@@ -76,11 +107,12 @@ class AuthController {
     res.status(200).json({
       success: true,
       message: result.message,
-      ...(result.resetToken && {
-        data: {
-          resetToken: result.resetToken,
-        },
-      }),
+      ...(process.env.NODE_ENV !== "production" &&
+        result.resetToken && {
+          data: {
+            resetToken: result.resetToken,
+          },
+        }),
     });
   });
 
@@ -91,6 +123,8 @@ class AuthController {
       token,
       newPassword
     );
+
+    clearAuthCookies(res);
 
     res.status(200).json({
       success: true,

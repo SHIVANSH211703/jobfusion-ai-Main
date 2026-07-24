@@ -22,11 +22,17 @@ export function useLogin() {
       authService.login(payload),
 
     onSuccess: async (response) => {
-      const { user, tokens } = response.data;
+      const { user } = response.data;
 
-      login(tokens.accessToken, tokens.refreshToken);
+      // Backend has already set the HttpOnly cookies.
+      // Just update the client auth state.
+      login();
 
-      queryClient.setQueryData(CURRENT_USER_QUERY_KEY, user);
+      // Cache the current user
+      queryClient.setQueryData(
+        CURRENT_USER_QUERY_KEY,
+        user
+      );
 
       toast.success("Welcome back!");
 

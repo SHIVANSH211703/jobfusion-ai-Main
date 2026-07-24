@@ -12,39 +12,53 @@ interface Props {
 export default function AuthProvider({
   children,
 }: Props) {
-  const initialize = useAuthStore((s) => s.initialize);
+  const initialize = useAuthStore((state) => state.initialize);
 
-  const logout = useAuthStore((s) => s.logout);
+  const login = useAuthStore((state) => state.login);
+
+  const logout = useAuthStore((state) => state.logout);
 
   const isInitialized = useAuthStore(
-    (s) => s.isInitialized
+    (state) => state.isInitialized
   );
 
   const isAuthenticated = useAuthStore(
-    (s) => s.isAuthenticated
+    (state) => state.isAuthenticated
   );
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
-  const { isLoading, isError } = useCurrentUser(
-    isInitialized && isAuthenticated
+  const {
+    data,
+    isLoading,
+    isSuccess,
+    isError,
+  } = useCurrentUser(
+    isInitialized && !isAuthenticated
   );
 
   useEffect(() => {
     if (!isInitialized) return;
 
-    if (!isAuthenticated) return;
+    if (isSuccess && data) {
+      login();
+      return;
+    }
 
-    if (isError) {
+    // Only logout if the user was previously authenticated
+    if (isError && isAuthenticated) {
       logout();
     }
   }, [
-    isError,
-    logout,
-    isAuthenticated,
     isInitialized,
+    isSuccess,
+    isError,
+    data,
+    isAuthenticated,
+    login,
+    logout,
   ]);
 
   if (!isInitialized) {
@@ -55,7 +69,7 @@ export default function AuthProvider({
     );
   }
 
-  if (isAuthenticated && isLoading) {
+  if (!isAuthenticated && isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         Loading...

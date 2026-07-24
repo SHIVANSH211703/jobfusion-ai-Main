@@ -4,9 +4,9 @@ import axios, {
 } from "axios";
 
 import { API } from "@/constants/api";
-import { storage } from "@/lib/storage";
 
-interface RetryAxiosRequestConfig extends InternalAxiosRequestConfig {
+interface RetryAxiosRequestConfig
+  extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
@@ -15,64 +15,41 @@ const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: false,
+  withCredentials: true,
 });
-
-axiosInstance.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const accessToken = storage.getAccessToken();
-
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 axiosInstance.interceptors.response.use(
   (response) => response,
 
   async (error: AxiosError) => {
-    const originalRequest = error.config as RetryAxiosRequestConfig;
+    const originalRequest =
+      error.config as RetryAxiosRequestConfig;
 
     if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
+  error.response?.status !== 401 ||
+  originalRequest?._retry ||
+  originalRequest?.url?.includes(API.AUTH.LOGIN) ||
+  originalRequest?.url?.includes(API.AUTH.REGISTER) ||
+  originalRequest?.url?.includes(API.AUTH.ME) ||
+  originalRequest?.url?.includes(API.AUTH.REFRESH_TOKEN)
+) {
+  return Promise.reject(error);
+}
+
+originalRequest._retry = true; {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = storage.getRefreshToken();
-
-        if (!refreshToken) {
-          storage.clearTokens();
-
-          return Promise.reject(error);
-        }
-
-        const response = await axios.post(
+        await axios.post(
           `${API.BASE_URL}${API.AUTH.REFRESH_TOKEN}`,
+          {},
           {
-            refreshToken,
+            withCredentials: true,
           }
         );
 
-       const { tokens } = response.data.data;
-
-storage.setTokens(
-  tokens.accessToken,
-  tokens.refreshToken
-);
-
-originalRequest.headers.Authorization =
-  `Bearer ${tokens.accessToken}`;
-
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        storage.clearTokens();
-
         if (typeof window !== "undefined") {
           window.location.href = "/login";
         }

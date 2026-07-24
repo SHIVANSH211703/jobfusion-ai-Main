@@ -2,8 +2,8 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 import authService from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
@@ -21,12 +21,17 @@ export function useRegister() {
     mutationFn: (payload: RegisterRequest) =>
       authService.register(payload),
 
-    onSuccess: (response) => {
-      const { user, tokens } = response.data;
+    onSuccess: async (response) => {
+      const { user } = response.data;
 
-      login(tokens.accessToken, tokens.refreshToken);
+      // Backend already stored the cookies
+      login();
 
-      queryClient.setQueryData(CURRENT_USER_QUERY_KEY, user);
+      // Cache current user
+      queryClient.setQueryData(
+        CURRENT_USER_QUERY_KEY,
+        user
+      );
 
       toast.success(response.message);
 
@@ -36,7 +41,8 @@ export function useRegister() {
     onError: (error) => {
       if (axios.isAxiosError(error)) {
         toast.error(
-          error.response?.data?.message ?? "Registration failed."
+          error.response?.data?.message ??
+            "Registration failed"
         );
         return;
       }

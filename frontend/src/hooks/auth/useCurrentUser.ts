@@ -4,26 +4,26 @@ import { useQuery } from "@tanstack/react-query";
 
 import authService from "@/services/auth.service";
 
-export const CURRENT_USER_QUERY_KEY = ["current-user"];
+export const CURRENT_USER_QUERY_KEY = ["current-user"] as const;
 
-export function useCurrentUser(enabled = true) {
+export function useCurrentUser(enabled: boolean = true) {
   return useQuery({
     queryKey: CURRENT_USER_QUERY_KEY,
 
     queryFn: async () => {
       const response = await authService.getCurrentUser();
-
       return response.data;
     },
 
     enabled,
 
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
 
-    gcTime: 1000 * 60 * 30,
+    retry: false,
 
-    retry: 1,
-
+    refetchOnMount: false,
+    refetchOnReconnect: true,
     refetchOnWindowFocus: false,
   });
 }

@@ -1,56 +1,40 @@
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
-
 const isBrowser = typeof window !== "undefined";
 
 export const storage = {
-  getAccessToken(): string | null {
+  get<T>(key: string): T | null {
     if (!isBrowser) return null;
 
-    return localStorage.getItem(ACCESS_TOKEN_KEY);
+    const value = localStorage.getItem(key);
+
+    if (!value) return null;
+
+    try {
+      return JSON.parse(value) as T;
+    } catch {
+      return value as T;
+    }
   },
 
-  getRefreshToken(): string | null {
-    if (!isBrowser) return null;
-
-    return localStorage.getItem(REFRESH_TOKEN_KEY);
-  },
-
-  setAccessToken(token: string): void {
+  set(key: string, value: unknown): void {
     if (!isBrowser) return;
 
-    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    if (typeof value === "string") {
+      localStorage.setItem(key, value);
+      return;
+    }
+
+    localStorage.setItem(key, JSON.stringify(value));
   },
 
-  setRefreshToken(token: string): void {
+  remove(key: string): void {
     if (!isBrowser) return;
 
-    localStorage.setItem(REFRESH_TOKEN_KEY, token);
+    localStorage.removeItem(key);
   },
 
-  setTokens(accessToken: string, refreshToken: string): void {
+  clear(): void {
     if (!isBrowser) return;
 
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  },
-
-  removeAccessToken(): void {
-    if (!isBrowser) return;
-
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-  },
-
-  removeRefreshToken(): void {
-    if (!isBrowser) return;
-
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-  },
-
-  clearTokens(): void {
-    if (!isBrowser) return;
-
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.clear();
   },
 };

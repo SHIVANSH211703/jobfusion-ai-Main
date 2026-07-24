@@ -46,8 +46,6 @@ router.post(
 
 router.post(
   "/refresh-token",
-  refreshTokenValidation,
-  validate,
   authController.refreshToken
 );
 

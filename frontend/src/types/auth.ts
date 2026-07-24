@@ -2,16 +2,11 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar: string;
+  avatar: string | null;
   role: string;
   isEmailVerified: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface Tokens {
-  accessToken: string;
-  refreshToken: string;
 }
 
 export interface LoginRequest {
@@ -44,30 +39,5 @@ export interface AuthResponse {
   message: string;
   data: {
     user: User;
-    tokens: Tokens;
-  };
-}
-export interface Tokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  role: string;
-  isEmailVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: User;
-    tokens: Tokens;
   };
 }
