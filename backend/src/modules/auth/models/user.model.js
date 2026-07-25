@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    // ==========================
+    // Authentication
+    // ==========================
+
     name: {
       type: String,
       required: [true, "Name is required"],
@@ -23,11 +27,6 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       select: false,
       minlength: 6,
-    },
-
-    avatar: {
-      type: String,
-      default: "",
     },
 
     role: {
@@ -57,6 +56,77 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
       select: false,
+    },
+
+    // ==========================
+    // Profile
+    // ==========================
+
+    avatar: {
+      type: String,
+      default: "",
+    },
+
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    headline: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 150,
+    },
+
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 1000,
+    },
+
+    location: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    experienceLevel: {
+      type: String,
+      enum: [
+        "",
+        "Fresher",
+        "Intern",
+        "Junior",
+        "Mid-Level",
+        "Senior",
+        "Lead",
+      ],
+      default: "",
+    },
+
+    skills: {
+      type: [String],
+      default: [],
+    },
+
+    linkedin: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    github: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    portfolio: {
+      type: String,
+      default: "",
+      trim: true,
     },
   },
   {

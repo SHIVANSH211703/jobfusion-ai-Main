@@ -4,8 +4,16 @@ const userRepository = require("../modules/auth/repositories/user.repository");
 
 const authMiddleware = async (req, res, next) => {
   try {
-    // Read token from HttpOnly Cookie
-    const token = req.cookies.accessToken;
+    let token = req.cookies?.accessToken;
+
+    // If no cookie, try Authorization header
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+
+      if (authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
 
     if (!token) {
       throw new AppError("Authentication required", 401);

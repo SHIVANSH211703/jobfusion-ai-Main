@@ -11,6 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import { useCurrentUser } from "@/hooks/auth/useCurrentUser";
+
 interface Props {
   collapsed: boolean;
   setCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -20,6 +22,17 @@ export default function Navbar({
   collapsed,
   setCollapsed,
 }: Props) {
+  const { data: user } = useCurrentUser();
+
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "";
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background px-6">
       <div className="flex items-center gap-4">
@@ -56,16 +69,16 @@ export default function Navbar({
 
         <div className="flex items-center gap-3 rounded-full border px-3 py-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-600 font-semibold text-white">
-            SR
+            {initials || "—"}
           </div>
 
           <div>
             <p className="text-sm font-semibold">
-              Shivansh Rai
+              {user?.name ?? "Loading..."}
             </p>
 
             <p className="text-xs text-muted-foreground">
-              Integration Engineer
+              {user?.headline || user?.role || ""}
             </p>
           </div>
         </div>

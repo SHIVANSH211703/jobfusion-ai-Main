@@ -1,6 +1,5 @@
 export const API = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_API_URL,
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL,
 
   AUTH: {
     LOGIN: "/auth/login",
@@ -11,5 +10,11 @@ export const API = {
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
     CHANGE_PASSWORD: "/auth/change-password",
+  },
+
+  PROFILE: {
+    GET: "/profile",
+    UPDATE: "/profile",
+    UPLOAD_AVATAR: "/profile/avatar",
   },
 } as const;

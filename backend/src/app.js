@@ -4,12 +4,12 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 
-const authRoutes = require("./modules/auth/routes/auth.routes");
+const routes = require("./routes");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 const app = express();
 
-// Security Middleware
+// Security
 app.use(helmet());
 
 // CORS
@@ -20,7 +20,7 @@ app.use(
   })
 );
 
-// Request Parsers
+// Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -36,10 +36,14 @@ app.get("/", (req, res) => {
   });
 });
 
+// ===============================
 // API Routes
-app.use("/api/v1/auth", authRoutes);
+// ===============================
+app.use("/api/v1", routes);
 
-// 404 Route
+// ===============================
+// 404 Handler
+// ===============================
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -47,7 +51,9 @@ app.use((req, res) => {
   });
 });
 
+// ===============================
 // Global Error Handler
+// ===============================
 app.use(errorMiddleware);
 
 module.exports = app;
