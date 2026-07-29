@@ -17,4 +17,19 @@ export const API = {
     UPDATE: "/profile",
     UPLOAD_AVATAR: "/profile/avatar",
   },
+
+  RESUME: {
+    GET_ALL: "/resume",
+    CREATE: "/resume",
+    UPLOAD: "/resume/upload",
+
+    GET_BY_ID: (id: string) => `/resume/${id}`,
+    UPDATE: (id: string) => `/resume/${id}`,
+    DELETE: (id: string) => `/resume/${id}`,
+
+    ANALYZE: (id: string) => `/resume/${id}/analyze`,
+    IMPROVE: (id: string) => `/resume/${id}/improve`,
+    JOB_MATCH: (id: string) => `/resume/${id}/job-match`,
+    COVER_LETTER: (id: string) => `/resume/${id}/cover-letter`,
+  },
 } as const;
