@@ -118,19 +118,24 @@ export default function Navbar() {
               ))}
             </div>
 
+            {/* Desktop Buttons */}
             <div className="hidden items-center gap-3 lg:flex">
-              <Button
-                variant="ghost"
-                className="rounded-xl text-white hover:bg-white/10"
-              >
-                Sign In
-              </Button>
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  className="rounded-xl text-white hover:bg-white/10"
+                >
+                  Sign In
+                </Button>
+              </Link>
 
-              <Button className="group rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 px-6 shadow-xl shadow-violet-600/30">
-                Get Started
+              <Link href="/register">
+                <Button className="group rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 px-6 shadow-xl shadow-violet-600/30">
+                  Get Started
 
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-              </Button>
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Button>
+              </Link>
             </div>
 
             <button
@@ -165,9 +170,24 @@ export default function Navbar() {
                     </Link>
                   ))}
 
-                  <Button className="w-full rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500">
-                    Get Started
-                  </Button>
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      className="w-full rounded-xl text-white hover:bg-white/10"
+                      onClick={() => setOpen(false)}
+                    >
+                      Sign In
+                    </Button>
+                  </Link>
+
+                  <Link href="/register">
+                    <Button
+                      className="w-full rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500"
+                      onClick={() => setOpen(false)}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
                 </div>
               </motion.div>
             )}
