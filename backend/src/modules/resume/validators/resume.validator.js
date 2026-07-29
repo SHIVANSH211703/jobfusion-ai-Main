@@ -58,10 +58,39 @@ const publicResumeValidation = [
     .notEmpty()
     .withMessage("Resume slug is required"),
 ];
+const jobMatchValidation = [
+  body("jobDescription")
+    .trim()
+    .notEmpty()
+    .withMessage("Job description is required.")
+    .isLength({ min: 20 })
+    .withMessage("Job description must be at least 20 characters long."),
+];
+
+const coverLetterValidation = [
+  body("jobDescription")
+    .trim()
+    .notEmpty()
+    .withMessage("Job description is required.")
+    .isLength({ min: 20 })
+    .withMessage("Job description must be at least 20 characters long."),
+
+  body("tone")
+    .optional()
+    .isIn([
+      "professional",
+      "formal",
+      "friendly",
+      "confident",
+    ])
+    .withMessage("Invalid tone."),
+];
 
 module.exports = {
   createResumeValidation,
   updateResumeValidation,
   resumeIdValidation,
   publicResumeValidation,
+  jobMatchValidation,
+   coverLetterValidation,
 };

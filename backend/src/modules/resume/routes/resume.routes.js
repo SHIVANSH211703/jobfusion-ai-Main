@@ -1,16 +1,16 @@
 const express = require("express");
 
 const resumeController = require("../controllers/resume.controller");
-
-const authenticate = require("../../../middlewares/auth.middleware");
-const validate = require("../../../middlewares/validation.middleware");
-
 const {
   createResumeValidation,
   updateResumeValidation,
   resumeIdValidation,
   publicResumeValidation,
+  jobMatchValidation,
+   coverLetterValidation,
 } = require("../validators/resume.validator");
+const authenticate = require("../../../middlewares/auth.middleware");
+const validate = require("../../../middlewares/validation.middleware");
 
 const router = express.Router();
 
@@ -89,6 +89,22 @@ router.post(
   resumeIdValidation,
   validate,
   resumeController.improveResume
+);
+
+router.post(
+  "/:id/job-match",
+  resumeIdValidation,
+  jobMatchValidation,
+  validate,
+  resumeController.matchResumeWithJobDescription
+);
+
+router.post(
+  "/:id/cover-letter",
+  resumeIdValidation,
+  coverLetterValidation,
+  validate,
+  resumeController.generateCoverLetter
 );
 
 module.exports = router;

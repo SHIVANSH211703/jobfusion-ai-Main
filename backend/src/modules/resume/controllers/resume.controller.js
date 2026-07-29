@@ -101,7 +101,40 @@ improveResume = asyncHandler(async (req, res) => {
   );
 
   res.status(200).json(result);
-});  
+}); 
+
+/**
+ * Match Resume with Job Description
+ * POST /api/v1/resume/:id/job-match
+ */
+matchResumeWithJobDescription = asyncHandler(async (req, res) => {
+  const { jobDescription } = req.body;
+
+  const result = await resumeService.matchResumeWithJobDescription(
+    req.user.id,
+    req.params.id,
+    jobDescription
+  );
+
+  res.status(200).json(result);
+});
+
+/**
+ * Generate Cover Letter
+ */
+generateCoverLetter = asyncHandler(async (req, res) => {
+  const { jobDescription, tone } = req.body;
+
+  const result = await resumeService.generateCoverLetter(
+    req.user.id,
+    req.params.id,
+    jobDescription,
+    tone
+  );
+
+  res.status(200).json(result);
+});
+
 }
 
 module.exports = new ResumeController();

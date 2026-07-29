@@ -179,6 +179,97 @@ async improveResume(userId, resumeId) {
     changes: improvedResume.changes || [],
   };
 }
+
+/**
+ * Match Resume with Job Description
+ */
+async matchResumeWithJobDescription(userId, resumeId, jobDescription) {
+  const resume = await resumeRepository.findById(resumeId);
+
+  if (!resume) {
+    throw new AppError("Resume not found.", 404);
+  }
+
+  if (resume.user._id.toString() !== userId) {
+    throw new AppError("Unauthorized.", 403);
+  }
+
+  if (!jobDescription || !jobDescription.trim()) {
+    throw new AppError("Job description is required.", 400);
+  }
+
+  const analysis = await aiService.matchResumeWithJobDescription(
+    {
+      title: resume.title,
+      summary: resume.summary,
+      personalInfo: resume.personalInfo,
+      education: resume.education,
+      experience: resume.experience,
+      projects: resume.projects,
+      skills: resume.skills,
+      certifications: resume.certifications,
+      achievements: resume.achievements,
+      languages: resume.languages,
+      customSections: resume.customSections,
+    },
+    jobDescription
+  );
+
+  return {
+    success: true,
+    message: "Job match analysis completed successfully.",
+    data: analysis,
+  };
+}
+
+/**
+ * Generate Cover Letter using AI
+ */
+async generateCoverLetter(
+  userId,
+  resumeId,
+  jobDescription,
+  tone = "professional"
+) {
+  const resume = await resumeRepository.findById(resumeId);
+
+  if (!resume) {
+    throw new AppError("Resume not found.", 404);
+  }
+
+  if (resume.user._id.toString() !== userId) {
+    throw new AppError("Unauthorized.", 403);
+  }
+
+  if (!jobDescription || !jobDescription.trim()) {
+    throw new AppError("Job description is required.", 400);
+  }
+
+  const result = await aiService.generateCoverLetter(
+    {
+      title: resume.title,
+      personalInfo: resume.personalInfo,
+      summary: resume.summary,
+      education: resume.education,
+      experience: resume.experience,
+      projects: resume.projects,
+      skills: resume.skills,
+      certifications: resume.certifications,
+      achievements: resume.achievements,
+      languages: resume.languages,
+      customSections: resume.customSections,
+    },
+    jobDescription,
+    tone
+  );
+
+  return {
+    success: true,
+    message: "Cover letter generated successfully.",
+    data: result,
+  };
+}
+
 }
 
 module.exports = new ResumeService();

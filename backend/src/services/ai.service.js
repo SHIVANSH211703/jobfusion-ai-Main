@@ -305,6 +305,170 @@ Return ONLY JSON.
   }
 }
 
+async matchResumeWithJobDescription(resumeData, jobDescription) {
+  const prompt = `
+You are an expert ATS recruiter and resume reviewer.
+
+Compare the candidate's resume with the provided job description.
+
+Rules:
+- Use ONLY the information present in the resume and job description.
+- Do NOT invent skills, experience, companies, or certifications.
+- Do NOT penalize the resume for information that is not required by the job description.
+- Return ONLY valid JSON.
+- Match score must be between 0 and 100.
+- Recommendations should be actionable.
+- Extract keywords intelligently.
+
+Resume:
+${JSON.stringify(resumeData, null, 2)}
+
+Job Description:
+${jobDescription}
+
+Return ONLY this JSON format:
+
+{
+  "matchScore": 0,
+  "matchedKeywords": [],
+  "missingKeywords": [],
+  "strengths": [],
+  "weaknesses": [],
+  "recommendations": []
+}
+`;
+
+  try {
+    const response = await axios.post(
+      this.baseURL,
+      {
+        model: this.model,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an ATS Resume Matching Expert. Return only valid JSON.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    let content = response.data.choices[0].message.content.trim();
+
+    // Remove markdown if present
+    content = content
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("Job Match AI Error:", error.response?.data || error.message);
+    throw new Error("Failed to analyze job match.");
+  }
+}
+
+async generateCoverLetter(
+  resumeData,
+  jobDescription,
+  tone = "professional"
+) {
+  const prompt = `
+You are an expert HR recruiter and professional resume writer.
+
+Generate a personalized cover letter based ONLY on the candidate's resume and the provided job description.
+
+Tone:
+${tone}
+
+Rules:
+
+- Use ONLY information available in the resume.
+- Never invent companies, skills, achievements or experience.
+- Tailor the cover letter according to the job description.
+- Mention the most relevant experience.
+- Keep it concise (300-400 words).
+- Make it ATS-friendly.
+- Use professional grammar.
+- Return ONLY valid JSON.
+
+Resume:
+
+${JSON.stringify(resumeData, null, 2)}
+
+Job Description:
+
+${jobDescription}
+
+Return ONLY this JSON:
+
+{
+  "coverLetter": ""
+}
+`;
+
+  try {
+    const response = await axios.post(
+      this.baseURL,
+      {
+        model: this.model,
+        temperature: 0.4,
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert cover letter writer. Return ONLY valid JSON.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "JobFusion AI",
+        },
+      }
+    );
+
+    let content = response.data.choices[0].message.content.trim();
+
+    console.log("\n========== COVER LETTER AI RESPONSE ==========");
+    console.log(content);
+    console.log("==============================================\n");
+
+    content = content
+      .replace(/```json/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    return JSON.parse(content);
+  } catch (error) {
+    console.error("\n========== COVER LETTER AI ERROR ==========");
+    console.error("Status:", error.response?.status);
+    console.error("Data:", error.response?.data);
+    console.error("Message:", error.message);
+    console.error("===========================================\n");
+
+    throw new Error("Failed to generate cover letter.");
+  }
+}
+
 }
 
 module.exports = new AIService();
