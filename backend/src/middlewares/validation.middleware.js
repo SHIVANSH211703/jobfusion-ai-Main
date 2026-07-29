@@ -9,11 +9,18 @@ const validate = (req, res, next) => {
   }
 
   const formattedErrors = errors.array().map((error) => ({
-    field: error.path,
+    field: error.path || error.param,
     message: error.msg,
+    value: error.value,
   }));
 
-  return next(new AppError("Validation Error", 400, formattedErrors));
+  return next(
+    new AppError(
+      "Validation Error",
+      400,
+      formattedErrors
+    )
+  );
 };
 
 module.exports = validate;
