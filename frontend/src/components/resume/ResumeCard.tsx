@@ -41,7 +41,9 @@ export default function ResumeCard({
           <div className="flex gap-2">
             <Button
               size="sm"
-              onClick={() => onView?.(resume.id)}
+             onClick={() =>
+  onView?.(resume._id ?? resume.id!)
+}
             >
               View
             </Button>
@@ -49,7 +51,9 @@ export default function ResumeCard({
             <Button
               size="sm"
               variant="destructive"
-              onClick={() => onDelete?.(resume.id)}
+              onClick={() =>
+  onDelete?.(resume._id ?? resume.id!)
+}
             >
               Delete
             </Button>

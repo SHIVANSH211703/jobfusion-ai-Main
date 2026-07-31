@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 import ResumeCard from "./ResumeCard";
 
-import { useDeleteResume } from "@/hooks/resume/useResumes";
+import { useDeleteResume } from "@/hooks/resume/useDeleteResume";
 
 import type { Resume } from "@/types/resume";
 
@@ -13,11 +15,13 @@ interface ResumeListProps {
 export default function ResumeList({
   resumes,
 }: ResumeListProps) {
+  const router = useRouter();
+
   const deleteResume = useDeleteResume();
 
   if (!Array.isArray(resumes)) {
     return (
-      <div className="text-center py-10">
+      <div className="py-10 text-center">
         Invalid resume data.
       </div>
     );
@@ -25,7 +29,7 @@ export default function ResumeList({
 
   if (resumes.length === 0) {
     return (
-      <div className="text-center py-10">
+      <div className="py-10 text-center">
         No resumes found.
       </div>
     );
@@ -33,15 +37,25 @@ export default function ResumeList({
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
       {resumes.map((resume) => (
+
         <ResumeCard
-          key={resume.id}
+          key={resume._id ?? resume.id}
           resume={resume}
+
+          onView={(id) =>
+            router.push(`/resume/${id}`)
+          }
+
           onDelete={(id) =>
             deleteResume.mutate(id)
           }
+
         />
+
       ))}
+
     </div>
   );
 }

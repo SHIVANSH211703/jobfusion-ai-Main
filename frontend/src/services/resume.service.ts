@@ -4,19 +4,17 @@ import { API } from "@/constants/api";
 import type {
   ResumeResponse,
   ResumeListResponse,
-  UpdateResumeRequest,
   CreateResumeRequest,
+  UpdateResumeRequest,
+  ATSAnalysisResponse,
+  ImproveResumeResponse,
+  JobMatchResponse,
+  CoverLetterResponse,
 } from "@/types/resume";
 
 interface MessageResponse {
   success: boolean;
   message: string;
-}
-
-interface ATSAnalysisResponse {
-  success: boolean;
-  message: string;
-  data: any;
 }
 
 interface JobMatchRequest {
@@ -37,10 +35,13 @@ class ResumeService {
     return response.data;
   }
 
-  async getResumeById(id: string): Promise<ResumeResponse> {
-    const response = await axiosInstance.get<ResumeResponse>(
-      API.RESUME.GET_BY_ID(id)
-    );
+  async getResumeById(
+    id: string
+  ): Promise<ResumeResponse> {
+    const response =
+      await axiosInstance.get<ResumeResponse>(
+        API.RESUME.GET_BY_ID(id)
+      );
 
     return response.data;
   }
@@ -48,10 +49,11 @@ class ResumeService {
   async createResume(
     payload: CreateResumeRequest
   ): Promise<ResumeResponse> {
-    const response = await axiosInstance.post<ResumeResponse>(
-      API.RESUME.CREATE,
-      payload
-    );
+    const response =
+      await axiosInstance.post<ResumeResponse>(
+        API.RESUME.CREATE,
+        payload
+      );
 
     return response.data;
   }
@@ -60,34 +62,44 @@ class ResumeService {
     id: string,
     payload: UpdateResumeRequest
   ): Promise<ResumeResponse> {
-    const response = await axiosInstance.put<ResumeResponse>(
-      API.RESUME.UPDATE(id),
-      payload
-    );
+    const response =
+      await axiosInstance.put<ResumeResponse>(
+        API.RESUME.UPDATE(id),
+        payload
+      );
 
     return response.data;
   }
 
-  async deleteResume(id: string): Promise<MessageResponse> {
-    const response = await axiosInstance.delete<MessageResponse>(
-      API.RESUME.DELETE(id)
-    );
+  async deleteResume(
+    id: string
+  ): Promise<MessageResponse> {
+    const response =
+      await axiosInstance.delete<MessageResponse>(
+        API.RESUME.DELETE(id)
+      );
 
     return response.data;
   }
 
-  async analyzeResume(id: string): Promise<ATSAnalysisResponse> {
-    const response = await axiosInstance.post<ATSAnalysisResponse>(
-      API.RESUME.ANALYZE(id)
-    );
+  async analyzeResume(
+    id: string
+  ): Promise<ATSAnalysisResponse> {
+    const response =
+      await axiosInstance.post<ATSAnalysisResponse>(
+        API.RESUME.ANALYZE(id)
+      );
 
     return response.data;
   }
 
-  async improveResume(id: string): Promise<ATSAnalysisResponse> {
-    const response = await axiosInstance.post<ATSAnalysisResponse>(
-      API.RESUME.IMPROVE(id)
-    );
+  async improveResume(
+    id: string
+  ): Promise<ImproveResumeResponse> {
+    const response =
+      await axiosInstance.post<ImproveResumeResponse>(
+        API.RESUME.IMPROVE(id)
+      );
 
     return response.data;
   }
@@ -95,11 +107,12 @@ class ResumeService {
   async jobMatch(
     id: string,
     payload: JobMatchRequest
-  ): Promise<ATSAnalysisResponse> {
-    const response = await axiosInstance.post<ATSAnalysisResponse>(
-      API.RESUME.JOB_MATCH(id),
-      payload
-    );
+  ): Promise<JobMatchResponse> {
+    const response =
+      await axiosInstance.post<JobMatchResponse>(
+        API.RESUME.JOB_MATCH(id),
+        payload
+      );
 
     return response.data;
   }
@@ -107,16 +120,15 @@ class ResumeService {
   async generateCoverLetter(
     id: string,
     payload: CoverLetterRequest
-  ): Promise<ATSAnalysisResponse> {
-    const response = await axiosInstance.post<ATSAnalysisResponse>(
-      API.RESUME.COVER_LETTER(id),
-      payload
-    );
+  ): Promise<CoverLetterResponse> {
+    const response =
+      await axiosInstance.post<CoverLetterResponse>(
+        API.RESUME.COVER_LETTER(id),
+        payload
+      );
 
     return response.data;
   }
 }
 
-const resumeService = new ResumeService();
-
-export default resumeService;
+export default new ResumeService();
