@@ -58,6 +58,35 @@ class ResumeService {
     return response.data;
   }
 
+  async uploadResume(
+  file: File
+): Promise<{
+  success: boolean;
+  message: string;
+  data: {
+    uploadId: string;
+    resumeId: string;
+  };
+}> {
+  const formData = new FormData();
+
+  formData.append("resume", file);
+
+  const response =
+    await axiosInstance.post(
+      API.RESUME.UPLOAD,
+      formData,
+      {
+        headers: {
+          "Content-Type":
+            "multipart/form-data",
+        },
+      }
+    );
+
+  return response.data;
+  }
+
   async updateResume(
     id: string,
     payload: UpdateResumeRequest

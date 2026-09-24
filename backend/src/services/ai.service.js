@@ -305,7 +305,10 @@ Return ONLY JSON.
   }
 }
 
-async matchResumeWithJobDescription(resumeData, jobDescription) {
+async matchResumeWithJobDescription(
+  resumeData,
+  jobDescription
+) {
   const prompt = `
 You are an expert ATS recruiter and resume reviewer.
 
@@ -339,10 +342,17 @@ Return ONLY this JSON format:
 `;
 
   try {
+    if (!this.apiKey) {
+      throw new Error(
+        "OPENROUTER_API_KEY is not configured"
+      );
+    }
+
     const response = await axios.post(
       this.baseURL,
       {
         model: this.model,
+
         messages: [
           {
             role: "system",
@@ -354,28 +364,81 @@ Return ONLY this JSON format:
             content: prompt,
           },
         ],
+
         temperature: 0.3,
       },
       {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "JobFusion AI",
         },
       }
     );
 
-    let content = response.data.choices[0].message.content.trim();
+    const content =
+      response.data?.choices?.[0]?.message?.content;
 
-    // Remove markdown if present
-    content = content
-      .replace(/```json/g, "")
+    if (!content) {
+      throw new Error(
+        "OpenRouter returned an empty response"
+      );
+    }
+
+    console.log(
+      "\n========== JOB MATCH AI RESPONSE =========="
+    );
+
+    console.log(content);
+
+    console.log(
+      "============================================\n"
+    );
+
+    const cleanedContent = content
+      .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
 
-    return JSON.parse(content);
+    try {
+      return JSON.parse(cleanedContent);
+    } catch (parseError) {
+      console.error(
+        "AI returned invalid JSON:"
+      );
+
+      console.error(cleanedContent);
+
+      throw new Error(
+        "AI returned invalid JSON"
+      );
+    }
   } catch (error) {
-    console.error("Job Match AI Error:", error.response?.data || error.message);
-    throw new Error("Failed to analyze job match.");
+    console.error(
+      "\n========== JOB MATCH AI ERROR =========="
+    );
+
+    console.error(
+      "Status:",
+      error.response?.status
+    );
+
+    console.error(
+      "Response:",
+      error.response?.data
+    );
+
+    console.error(
+      "Message:",
+      error.message
+    );
+
+    console.error(
+      "========================================\n"
+    );
+
+    throw error;
   }
 }
 

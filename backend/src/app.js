@@ -23,6 +23,8 @@ app.use(
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Cookies
 app.use(cookieParser());
 
 // Logger

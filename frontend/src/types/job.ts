@@ -21,7 +21,7 @@ export const API = {
   RESUME: {
     GET_ALL: "/resume",
     CREATE: "/resume",
-    UPLOAD: "/resume-upload",
+    UPLOAD: "/resume/upload",
 
     GET_BY_ID: (id: string) => `/resume/${id}`,
     UPDATE: (id: string) => `/resume/${id}`,
