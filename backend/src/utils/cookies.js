@@ -1,12 +1,20 @@
-const isProduction = process.env.NODE_ENV === "production";
+const isProduction =
+  process.env.NODE_ENV === "production";
 
 const cookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
+  sameSite: isProduction
+    ? "none"
+    : "lax",
+  path: "/",
 };
 
-const setAuthCookies = (res, accessToken, refreshToken) => {
+const setAuthCookies = (
+  res,
+  accessToken,
+  refreshToken
+) => {
   res.cookie("accessToken", accessToken, {
     ...cookieOptions,
     maxAge: 15 * 60 * 1000, // 15 minutes
@@ -19,8 +27,15 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie("accessToken", cookieOptions);
-  res.clearCookie("refreshToken", cookieOptions);
+  res.clearCookie(
+    "accessToken",
+    cookieOptions
+  );
+
+  res.clearCookie(
+    "refreshToken",
+    cookieOptions
+  );
 };
 
 module.exports = {
