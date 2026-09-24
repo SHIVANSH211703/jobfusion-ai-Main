@@ -773,7 +773,7 @@ export default function JobDetailsPage() {
               job.skills.length > 0 ? (
                 <div className="mt-5 flex flex-wrap gap-2">
                   {job.skills.map(
-                    (skill) => (
+                  (skill: string) => (
                       <span
                         key={skill}
                         className="rounded-full border border-border bg-background px-4 py-2 text-sm text-muted-foreground transition hover:border-violet-500/40 hover:text-violet-500"
