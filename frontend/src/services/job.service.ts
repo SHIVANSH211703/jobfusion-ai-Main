@@ -8,6 +8,7 @@ import type {
   SavedJobsResponse,
   JobSearchParams,
 } from "@/types/job";
+import type { JobMatchResponse } from "@/types/resume";
 
 class JobService {
   // Get all jobs
@@ -71,6 +72,19 @@ class JobService {
     const response =
       await axiosInstance.delete<SaveJobResponse>(
         API.JOBS.UNSAVE(id)
+      );
+
+    return response.data;
+  }
+
+  async matchJob(
+    id: string,
+    resumeId: string
+  ): Promise<JobMatchResponse> {
+    const response =
+      await axiosInstance.post<JobMatchResponse>(
+        API.JOBS.MATCH(id),
+        { resumeId }
       );
 
     return response.data;

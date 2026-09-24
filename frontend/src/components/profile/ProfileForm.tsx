@@ -54,19 +54,20 @@ export default function ProfileForm({ profile }: ProfileFormProps) {
     },
   });
 
-  const onSubmit = (values: ProfileFormValues) => {
-    updateProfile({
-      ...values,
-      phone: values.phone ?? "",
-      headline: values.headline ?? "",
-      bio: values.bio ?? "",
-      location: values.location ?? "",
-      experienceLevel: values.experienceLevel ?? "",
-      github: values.github ?? "",
-      linkedin: values.linkedin ?? "",
-      portfolio: values.portfolio ?? "",
-    });
-  };
+ const onSubmit = (values: ProfileFormValues) => {
+  updateProfile({
+    ...values,
+    skills: values.skills ?? [],
+    phone: values.phone ?? "",
+    headline: values.headline ?? "",
+    bio: values.bio ?? "",
+    location: values.location ?? "",
+    experienceLevel: values.experienceLevel ?? "",
+    github: values.github ?? "",
+    linkedin: values.linkedin ?? "",
+    portfolio: values.portfolio ?? "",
+  });
+};
 
   return (
     <Card>

@@ -10,8 +10,16 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 
-import { resumeSchema, ResumeFormValues } from "@/schemas/resume.schema";
-import { Resume } from "@/types/resume";
+import {
+  resumeSchema,
+  ResumeFormInput,
+  ResumeFormValues,
+} from "@/schemas/resume.schema";
+import {
+  CreateResumeRequest,
+  Resume,
+  UpdateResumeRequest,
+} from "@/types/resume";
 import { useCreateResume } from "@/hooks/resume/useCreateResume";
 import { useUpdateResume } from "@/hooks/resume/useUpdateResume";
 
@@ -39,7 +47,7 @@ export default function ResumeForm({ mode, resume }: ResumeFormProps) {
     setValue,
     control,
     formState: { errors },
-  } = useForm<ResumeFormValues>({
+  } = useForm<ResumeFormInput, unknown, ResumeFormValues>({
     resolver: zodResolver(resumeSchema),
     defaultValues: {
       title: "",
@@ -119,12 +127,21 @@ const {
 
   const onSubmit = async (data: ResumeFormValues) => {
     if (mode === "create") {
-      await createResume.mutateAsync(data as any);
+      const payload: CreateResumeRequest = data;
+      await createResume.mutateAsync(payload);
     } else if (resume) {
+      const id = resume._id ?? resume.id;
+
+      if (!id) {
+        return;
+      }
+
+      const payload: UpdateResumeRequest = data;
+
       await updateResume.mutateAsync({
-  id: (resume as any)._id ?? resume.id,
-  payload: data,
-});
+        id,
+        payload,
+      });
     }
     router.push("/resume");
   };

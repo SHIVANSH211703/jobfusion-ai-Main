@@ -31,6 +31,7 @@ import { useResumes } from "@/hooks/resume/useResumes";
 import { useResumeUpload } from "@/hooks/resume/useResumeUpload";
 
 import type { Resume } from "@/types/resume";
+import type { Job } from "@/types/job";
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -132,8 +133,6 @@ export default function JobDetailsPage() {
 
     const rawData = savedJobsData.data;
 
-    let savedJobs: any[] = [];
-
     /*
      * Backend may return:
      *
@@ -152,31 +151,9 @@ export default function JobDetailsPage() {
      * }
      */
 
-    if (Array.isArray(rawData)) {
-      savedJobs = rawData;
-    } else if (
-      rawData &&
-      typeof rawData === "object"
-    ) {
-      const objectData = rawData as any;
+    const savedJobs: Job[] = rawData.jobs ?? [];
 
-      if (Array.isArray(objectData.savedJobs)) {
-        savedJobs = objectData.savedJobs;
-      } else if (Array.isArray(objectData.jobs)) {
-        savedJobs = objectData.jobs;
-      }
-    }
-
-    const found = savedJobs.some(
-      (savedJob) => {
-        const savedJobId =
-          typeof savedJob.jobId === "string"
-            ? savedJob.jobId
-            : savedJob.jobId?._id;
-
-        return savedJobId === jobId;
-      }
-    );
+    const found = savedJobs.some((savedJob) => savedJob._id === jobId);
 
     setIsSaved(found);
   }, [savedJobsData, jobId]);
@@ -432,7 +409,7 @@ export default function JobDetailsPage() {
   const formatSalary = (
     min: number | null | undefined,
     max: number | null | undefined,
-    currency: string | undefined
+    currency: string | null | undefined
   ) => {
     if (!min && !max) {
       return "Salary not specified";

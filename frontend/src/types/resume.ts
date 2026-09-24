@@ -82,7 +82,7 @@ export interface Resume {
   achievements: Achievement[];
   languages: Language[];
 
-  customSections: any[];
+  customSections?: unknown[];
 
   createdAt: string;
   updatedAt: string;

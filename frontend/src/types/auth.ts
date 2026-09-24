@@ -6,6 +6,7 @@ export interface User {
   role: string;
   isEmailVerified: boolean;
   createdAt: string;
+  headline?: string;
   updatedAt: string;
 }
 

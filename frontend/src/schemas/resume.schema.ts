@@ -79,4 +79,5 @@ export const resumeSchema = z.object({
     languages: z.array(languageSchema),
 });
 
-export type ResumeFormValues = z.infer<typeof resumeSchema>;
+export type ResumeFormInput = z.input<typeof resumeSchema>;
+export type ResumeFormValues = z.output<typeof resumeSchema>;

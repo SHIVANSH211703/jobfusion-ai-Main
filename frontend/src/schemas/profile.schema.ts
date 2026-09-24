@@ -66,4 +66,4 @@ export const profileSchema = z.object({
     .or(z.literal("")),
 });
 
-export type ProfileFormValues = z.infer<typeof profileSchema>;
+export type ProfileFormValues = z.input<typeof profileSchema>;

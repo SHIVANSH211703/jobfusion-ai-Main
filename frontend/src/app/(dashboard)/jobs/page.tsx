@@ -85,34 +85,12 @@ export default function JobsPage() {
   useEffect(() => {
     const rawData = savedJobsData?.data;
 
-    let savedJobs: any[] = [];
-
-    if (Array.isArray(rawData)) {
-      savedJobs = rawData;
-    } else if (
-      rawData &&
-      typeof rawData === "object"
-    ) {
-      const objectData = rawData as any;
-
-      if (Array.isArray(objectData.savedJobs)) {
-        savedJobs = objectData.savedJobs;
-      } else if (Array.isArray(objectData.jobs)) {
-        savedJobs = objectData.jobs;
-      }
-    }
+    const savedJobs = rawData?.jobs ?? [];
 
     const ids = new Set<string>();
 
     savedJobs.forEach((savedJob) => {
-      const jobId =
-        typeof savedJob.jobId === "string"
-          ? savedJob.jobId
-          : savedJob.jobId?._id;
-
-      if (jobId) {
-        ids.add(jobId);
-      }
+      ids.add(savedJob._id);
     });
 
     setSavedJobIds(ids);
@@ -197,9 +175,7 @@ export default function JobsPage() {
   /*
    * Format posted date
    */
-  const formatPostedDate = (
-    postedAt: string | null
-  ) => {
+  const formatPostedDate = (postedAt?: string | null) => {
     if (!postedAt) {
       return "Recently posted";
     }
@@ -528,7 +504,7 @@ export default function JobsPage() {
           {/* ===================================================== */}
 
           <div className="space-y-4">
-            {jobs.map((job) => {
+            {jobs.map((job: Job) => {
               const isSaved = savedJobIds.has(
                 job._id
               );
@@ -590,7 +566,7 @@ export default function JobsPage() {
 
                             <span>
                               {formatPostedDate(
-                                job.postedAt
+                                job.postedAt ?? null
                               )}
                             </span>
                           </div>
