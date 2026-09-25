@@ -13,11 +13,25 @@ const app = express();
 app.use(helmet());
 
 // CORS
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.CORS_ORIGIN,
+  "http://localhost:3000",
+  "http://localhost:3001",
+].filter(Boolean);
+
 app.use(
   cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true,
-})
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
 );
 
 // Body Parser

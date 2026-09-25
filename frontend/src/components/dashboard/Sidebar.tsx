@@ -18,6 +18,7 @@ import { useLogout } from "@/hooks/auth/useLogout";
 
 interface Props {
   collapsed: boolean;
+  onNavigate?: () => void;
 }
 
 const items = [
@@ -58,7 +59,7 @@ const items = [
   },
 ];
 
-export default function Sidebar({ collapsed }: Props) {
+export default function Sidebar({ collapsed, onNavigate }: Props) {
   const pathname = usePathname();
 
   const { mutate: logout, isPending } = useLogout();
@@ -103,6 +104,7 @@ export default function Sidebar({ collapsed }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
                   "flex items-center rounded-xl px-4 py-3 transition-all duration-200",
                   active

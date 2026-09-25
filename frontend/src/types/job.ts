@@ -74,3 +74,25 @@ export interface SavedJobsResponse {
   message: string;
   data: JobPageData;
 }
+
+export interface JobApplication {
+  _id: string;
+  status: "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+  appliedAt: string;
+  notes?: string;
+  jobId?: Job;
+  job?: Job;
+  resumeId?: { _id: string; title?: string };
+}
+
+export interface ApplicationsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    applications: JobApplication[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

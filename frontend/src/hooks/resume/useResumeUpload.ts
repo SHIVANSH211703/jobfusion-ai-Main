@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 
 import resumeService from "@/services/resume.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 export const RESUME_QUERY_KEY = [
   "resumes",
@@ -31,11 +32,8 @@ export function useResumeUpload() {
       );
     },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ||
-          "Failed to upload resume."
-      );
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Failed to upload resume."));
     },
   });
 }

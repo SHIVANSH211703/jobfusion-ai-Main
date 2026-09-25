@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import resumeService from "@/services/resume.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { RESUME_QUERY_KEY } from "./useResumes";
 
 export function useDeleteResume() {
@@ -21,10 +22,9 @@ export function useDeleteResume() {
       toast.success("Resume deleted successfully.");
     },
 
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(
-        error?.response?.data?.message ??
-          "Failed to delete resume."
+        getApiErrorMessage(error, "Failed to delete resume.")
       );
     },
   });

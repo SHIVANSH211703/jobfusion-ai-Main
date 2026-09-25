@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
   Briefcase,
@@ -15,17 +16,20 @@ import {
 } from "lucide-react";
 
 import { useApplications } from "@/hooks/jobs/useApplications";
+import type { JobApplication } from "@/types/job";
 
 export default function ApplicationsPage() {
+  const [statusFilter, setStatusFilter] = useState<"all" | JobApplication["status"]>("all");
   const {
     data,
     isLoading,
     isError,
   } = useApplications();
 
-  const rawData = data?.data;
-
-  let applications: any[] = [];
+  const applications: JobApplication[] = data?.data?.applications ?? [];
+  const filteredApplications = statusFilter === "all"
+    ? applications
+    : applications.filter((application) => application.status === statusFilter);
 
   /*
    * Backend may return:
@@ -44,21 +48,6 @@ export default function ApplicationsPage() {
    *   jobs: []
    * }
    */
-
-  if (Array.isArray(rawData)) {
-    applications = rawData;
-  } else if (
-    rawData &&
-    typeof rawData === "object"
-  ) {
-    const objectData = rawData as any;
-
-    if (Array.isArray(objectData.applications)) {
-      applications = objectData.applications;
-    } else if (Array.isArray(objectData.jobs)) {
-      applications = objectData.jobs;
-    }
-  }
 
   const getStatusStyles = (status: string) => {
     switch (status) {
@@ -326,9 +315,30 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2" aria-label="Application status filters">
+        {(["all", "applied", "interview", "rejected", "offer"] as const).map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            onClick={() => setStatusFilter(filter)}
+            className={`rounded-lg border px-3 py-2 text-sm font-medium capitalize transition ${
+              statusFilter === filter
+                ? "border-primary bg-primary text-primary-foreground"
+                : "hover:bg-muted"
+            }`}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
       {/* Applications */}
       <div className="space-y-4">
-        {applications.map((application) => {
+        {filteredApplications.length === 0 ? (
+          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            No applications match this status.
+          </div>
+        ) : filteredApplications.map((application) => {
           /*
            * Backend may populate jobId:
            *

@@ -23,11 +23,12 @@ interface ProfileFormProps {
 }
 
 const experienceLevels = [
-  "Entry Level",
-  "Mid Level",
-  "Senior Level",
+  "Fresher",
+  "Intern",
+  "Junior",
+  "Mid-Level",
+  "Senior",
   "Lead",
-  "Manager",
 ];
 
 export default function ProfileForm({ profile }: ProfileFormProps) {

@@ -85,6 +85,36 @@ class UserRepository {
       }
     );
   }
+
+  async updateEmailVerificationToken(userId, token, expires) {
+    return await User.findByIdAndUpdate(
+      userId,
+      {
+        emailVerificationToken: token,
+        emailVerificationExpires: expires,
+      },
+      { returnDocument: "after" }
+    ).select("+emailVerificationToken +emailVerificationExpires");
+  }
+
+  async findByEmailVerificationToken(token) {
+    return await User.findOne({
+      emailVerificationToken: token,
+      emailVerificationExpires: { $gt: new Date() },
+    }).select("+emailVerificationToken +emailVerificationExpires");
+  }
+
+  async verifyEmail(userId) {
+    return await User.findByIdAndUpdate(
+      userId,
+      {
+        isEmailVerified: true,
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+      },
+      { returnDocument: "after" }
+    );
+  }
 }
 
 module.exports = new UserRepository();

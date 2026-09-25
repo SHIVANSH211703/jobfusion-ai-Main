@@ -1,8 +1,15 @@
+"use client";
+
+import { useProfile } from "@/hooks/useProfile";
+
 export default function WelcomeCard() {
+  const { data } = useProfile();
+  const displayName = data?.name?.trim() || "there";
+
   return (
     <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-r from-violet-600 to-indigo-600 p-8">
       <h1 className="text-4xl font-bold">
-        Welcome back 👋
+        Welcome back, {displayName} 👋
       </h1>
 
       <p className="mt-3 text-violet-100">

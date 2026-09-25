@@ -7,6 +7,7 @@ import type {
   SaveJobResponse,
   SavedJobsResponse,
   JobSearchParams,
+  ApplicationsResponse,
 } from "@/types/job";
 import type { JobMatchResponse } from "@/types/resume";
 
@@ -117,11 +118,8 @@ class JobService {
 }
 
   // Get applications
-  async getApplications() {
-    const response =
-      await axiosInstance.get(
-        API.JOBS.APPLIED
-      );
+  async getApplications(): Promise<ApplicationsResponse> {
+    const response = await axiosInstance.get<ApplicationsResponse>(API.JOBS.APPLIED);
 
     return response.data;
   }

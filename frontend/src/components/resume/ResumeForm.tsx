@@ -189,7 +189,7 @@ const {
           location: "",
           startDate: "",
           endDate: "",
-          current: false,
+          currentlyWorking: false,
           description: "",
         })
       }
@@ -307,7 +307,7 @@ const {
         appendEducation({
           institution: "",
           degree: "",
-          field: "",
+          fieldOfStudy: "",
           grade: "",
           startDate: "",
           endDate: "",
@@ -347,7 +347,7 @@ const {
 
         <Input
           placeholder="Field of Study"
-          {...register(`education.${index}.field`)}
+          {...register(`education.${index}.fieldOfStudy`)}
         />
 
         <Input
@@ -417,7 +417,7 @@ const {
           description: "",
           technologies: [],
           github: "",
-          live: "",
+          liveDemo: "",
         })
       }
     >
@@ -455,7 +455,7 @@ const {
 
         <Input
           placeholder="React, Node.js, MongoDB"
-defaultValue={(field as any).technologies?.join(", ") ?? ""}   
+            defaultValue={field.technologies?.join(", ") ?? ""}
        onChange={(e) =>
             setValue(
               `projects.${index}.technologies`,
@@ -474,7 +474,7 @@ defaultValue={(field as any).technologies?.join(", ") ?? ""}
 
         <Input
           placeholder="Live Demo URL"
-          {...register(`projects.${index}.live`)}
+          {...register(`projects.${index}.liveDemo`)}
         />
 
         <Button
@@ -609,7 +609,7 @@ value={(watch("skills") ?? []).join(", ")}
       type="button"
       onClick={() =>
         appendLanguage({
-          language: "",
+          name: "",
           proficiency: "",
         })
       }
@@ -631,7 +631,7 @@ value={(watch("skills") ?? []).join(", ")}
         <Input
           placeholder="Language"
           {...register(
-            `languages.${index}.language`
+            `languages.${index}.name`
           )}
         />
 

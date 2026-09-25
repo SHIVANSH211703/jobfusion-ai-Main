@@ -102,6 +102,23 @@ class AuthService {
 
     return response.data;
   }
+
+  async sendVerificationEmail(): Promise<MessageResponse> {
+    const response = await axiosInstance.post<MessageResponse>(
+      API.AUTH.SEND_VERIFICATION_EMAIL
+    );
+
+    return response.data;
+  }
+
+  async verifyEmail(token: string): Promise<MessageResponse> {
+    const response = await axiosInstance.get<MessageResponse>(
+      API.AUTH.VERIFY_EMAIL,
+      { params: { token } }
+    );
+
+    return response.data;
+  }
 }
 
 const authService = new AuthService();

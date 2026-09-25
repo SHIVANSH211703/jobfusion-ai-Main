@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import {
@@ -25,6 +26,8 @@ import type { Job } from "@/types/job";
 const JOBS_PER_PAGE = 20;
 
 export default function JobsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
 
@@ -79,6 +82,16 @@ export default function JobsPage() {
     data?.data?.totalPages ??
     Math.ceil(total / JOBS_PER_PAGE);
 
+  useEffect(() => {
+    const nextSearch = searchParams.get("search") ?? "";
+    const nextLocation = searchParams.get("location") ?? "";
+
+    setSearchInput(nextSearch);
+    setLocationInput(nextLocation);
+    setSearch(nextSearch);
+    setLocation(nextLocation);
+  }, [searchParams]);
+
   /*
    * Sync saved jobs from backend.
    */
@@ -100,8 +113,18 @@ export default function JobsPage() {
    * Search
    */
   const handleSearch = () => {
-    setSearch(searchInput.trim());
-    setLocation(locationInput.trim());
+    const nextSearch = searchInput.trim();
+    const nextLocation = locationInput.trim();
+
+    setSearch(nextSearch);
+    setLocation(nextLocation);
+
+    const params = new URLSearchParams();
+
+    if (nextSearch) params.set("search", nextSearch);
+    if (nextLocation) params.set("location", nextLocation);
+
+    router.push(params.toString() ? `/jobs?${params.toString()}` : "/jobs");
     setPage(1);
   };
 

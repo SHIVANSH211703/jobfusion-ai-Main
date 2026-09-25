@@ -28,6 +28,14 @@ export default function ResumeActions({
   };
 
   const handleImprove = () => {
+    const confirmed = window.confirm(
+      "Optimize Resume will replace the current resume content using the existing AI improvement flow. Continue?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     improveMutation.mutate(resumeId);
   };
 

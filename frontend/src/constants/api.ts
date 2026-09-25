@@ -14,12 +14,18 @@ export const API = {
     FORGOT_PASSWORD: "/auth/forgot-password",
     RESET_PASSWORD: "/auth/reset-password",
     CHANGE_PASSWORD: "/auth/change-password",
+    SEND_VERIFICATION_EMAIL: "/auth/send-verification-email",
+    VERIFY_EMAIL: "/auth/verify-email",
   },
 
   PROFILE: {
     GET: "/profile",
     UPDATE: "/profile",
     UPLOAD_AVATAR: "/profile/avatar",
+  },
+
+  DASHBOARD: {
+    GET: "/dashboard",
   },
 
   RESUME: {

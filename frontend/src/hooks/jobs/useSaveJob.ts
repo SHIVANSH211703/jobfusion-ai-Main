@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 
 import jobService from "@/services/job.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 import type {
   SavedJobsResponse,
@@ -54,10 +55,9 @@ export function useSaveJob() {
       );
     },
 
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(
-        error?.response?.data?.message ||
-          "Unable to update saved job."
+        getApiErrorMessage(error, "Unable to update saved job.")
       );
     },
   });

@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import resumeService from "@/services/resume.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 interface CoverLetterPayload {
   id: string;
@@ -29,10 +30,9 @@ export function useCoverLetter() {
       );
     },
 
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(
-        error?.response?.data?.message ??
-          "Failed to generate cover letter."
+        getApiErrorMessage(error, "Failed to generate cover letter.")
       );
     },
   });

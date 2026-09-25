@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 
 import jobService from "@/services/job.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 interface ApplyJobPayload {
   jobId: string;
@@ -44,10 +45,9 @@ export function useApplyJob() {
       });
     },
 
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(
-        error?.response?.data?.message ||
-          "Failed to apply for this job."
+        getApiErrorMessage(error, "Failed to apply for this job.")
       );
     },
   });

@@ -11,7 +11,7 @@ export interface PersonalInfo {
 export interface Education {
   institution: string;
   degree: string;
-  field?: string;
+  fieldOfStudy?: string;
   grade?: string;
   startDate?: string;
   endDate?: string;
@@ -24,7 +24,7 @@ export interface Experience {
   location?: string;
   startDate?: string;
   endDate?: string;
-  current?: boolean;
+  currentlyWorking?: boolean;
   description?: string;
 }
 
@@ -33,7 +33,7 @@ export interface Project {
   description?: string;
   technologies: string[];
   github?: string;
-  live?: string;
+  liveDemo?: string;
 }
 
 export interface Certification {
@@ -48,7 +48,7 @@ export interface Achievement {
 }
 
 export interface Language {
-  language: string;
+  name: string;
   proficiency?: string;
 }
 

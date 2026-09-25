@@ -29,6 +29,7 @@ import { useSavedJobs } from "@/hooks/jobs/useSavedJobs";
 import { useApplyJob } from "@/hooks/jobs/useApplyJob";
 import { useResumes } from "@/hooks/resume/useResumes";
 import { useResumeUpload } from "@/hooks/resume/useResumeUpload";
+import { useJobMatch } from "@/hooks/jobs/useJobMatch";
 
 import type { Resume } from "@/types/resume";
 import type { Job } from "@/types/job";
@@ -105,6 +106,7 @@ export default function JobDetailsPage() {
    */
 
   const resumeUploadMutation = useResumeUpload();
+  const jobMatchMutation = useJobMatch();
 
   /*
    * ============================================================
@@ -812,12 +814,33 @@ export default function JobDetailsPage() {
                 {/* AI Match button */}
                 <button
                   type="button"
+                  disabled={!selectedResumeId || jobMatchMutation.isPending}
+                  onClick={() => {
+                    if (!selectedResumeId) {
+                      setShowApplyForm(true);
+                      toast.error("Select a resume before running AI match.");
+                      return;
+                    }
+
+                    jobMatchMutation.mutate({
+                      jobId,
+                      resumeId: selectedResumeId,
+                    });
+                  }}
                   className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
                 >
                   <Sparkles className="h-4 w-4" />
 
-                  Analyze My Resume
+                  {jobMatchMutation.isPending ? "Analyzing..." : "Analyze My Resume"}
                 </button>
+
+                {jobMatchMutation.data && (
+                  <div className="mt-4 rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 text-sm">
+                    <p className="font-semibold">Match score: {jobMatchMutation.data.data.matchScore}%</p>
+                    <p className="mt-2 text-muted-foreground">Matched skills: {jobMatchMutation.data.data.matchedKeywords.join(", ") || "None returned"}</p>
+                    <p className="mt-1 text-muted-foreground">Missing skills: {jobMatchMutation.data.data.missingKeywords.join(", ") || "None returned"}</p>
+                  </div>
+                )}
               </div>
             </section>
           </div>

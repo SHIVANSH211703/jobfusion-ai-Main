@@ -1,3 +1,5 @@
+"use client";
+
 import WelcomeCard from "@/components/dashboard/WelcomeCard";
 import QuickStats from "@/components/dashboard/QuickStats";
 import ATSCard from "@/components/dashboard/ATSCard";

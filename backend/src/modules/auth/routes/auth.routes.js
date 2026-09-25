@@ -63,6 +63,11 @@ router.post(
   authController.resetPassword
 );
 
+router.get(
+  "/verify-email",
+  authController.verifyEmail
+);
+
 // Protected Routes
 router.get(
   "/me",
@@ -82,6 +87,12 @@ router.post(
   changePasswordValidation,
   validate,
   authController.changePassword
+);
+
+router.post(
+  "/send-verification-email",
+  authMiddleware,
+  authController.sendVerificationEmail
 );
 
 module.exports = router;

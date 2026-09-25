@@ -15,6 +15,7 @@ export const educationSchema = z.object({
     institution: z.string().min(1, "Institution is required"),
     degree: z.string().min(1, "Degree is required"),
     field: z.string().optional(),
+        fieldOfStudy: z.string().optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     grade: z.string().optional(),
@@ -27,7 +28,7 @@ export const experienceSchema = z.object({
     location: z.string().optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
-    current: z.boolean().default(false),
+        currentlyWorking: z.boolean().default(false),
     description: z.string().optional(),
 });
 
@@ -36,7 +37,7 @@ export const projectSchema = z.object({
     description: z.string().optional(),
     technologies: z.array(z.string()).default([]),
     github: z.string().optional(),
-    live: z.string().optional(),
+        liveDemo: z.string().optional(),
 });
 
 export const certificationSchema = z.object({
@@ -51,7 +52,7 @@ export const achievementSchema = z.object({
 });
 
 export const languageSchema = z.object({
-    language: z.string().min(1),
+    name: z.string().min(1),
     proficiency: z.string().optional(),
 });
 

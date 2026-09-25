@@ -8,6 +8,7 @@ import {
 import { toast } from "sonner";
 
 import resumeService from "@/services/resume.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 import type {
   CreateResumeRequest,
@@ -68,11 +69,8 @@ export function useCreateResume() {
       toast.success("Resume created successfully");
     },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ||
-          "Failed to create resume"
-      );
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Failed to create resume"));
     },
   });
 }
@@ -102,11 +100,8 @@ export function useUpdateResume() {
       toast.success("Resume updated successfully");
     },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ||
-          "Failed to update resume"
-      );
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Failed to update resume"));
     },
   });
 }
@@ -126,11 +121,8 @@ export function useDeleteResume() {
       toast.success("Resume deleted successfully");
     },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message ||
-          "Failed to delete resume"
-      );
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Failed to delete resume"));
     },
   });
 }

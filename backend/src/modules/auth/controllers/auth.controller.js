@@ -131,6 +131,24 @@ class AuthController {
       message: result.message,
     });
   });
+
+  sendVerificationEmail = asyncHandler(async (req, res) => {
+    const result = await authService.sendVerificationEmail(req.user.id);
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  });
+
+  verifyEmail = asyncHandler(async (req, res) => {
+    const result = await authService.verifyEmail(req.query.token);
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  });
 }
 
 module.exports = new AuthController();

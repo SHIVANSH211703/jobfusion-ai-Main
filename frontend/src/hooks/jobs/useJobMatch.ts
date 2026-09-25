@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import jobService from "@/services/job.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 interface JobMatchPayload {
   jobId: string;
@@ -28,10 +29,9 @@ export function useJobMatch() {
       );
     },
 
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(
-        error?.response?.data?.message ||
-          "Failed to calculate job match."
+        getApiErrorMessage(error, "Failed to calculate job match.")
       );
     },
   });

@@ -8,6 +8,8 @@ import {
 import { toast } from "sonner";
 
 import profileService from "@/services/profile.service";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { CURRENT_USER_QUERY_KEY } from "@/hooks/auth/useCurrentUser";
 
 import type { UpdateProfileRequest } from "@/types/profile";
 
@@ -44,13 +46,12 @@ export function useUpdateProfile() {
 
     onSuccess: (response) => {
       queryClient.setQueryData(PROFILE_QUERY_KEY, response.data);
+      queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY });
       toast.success("Profile updated successfully");
     },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to update profile"
-      );
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Failed to update profile"));
     },
   });
 }
@@ -69,10 +70,8 @@ export function useUploadAvatar() {
       toast.success("Avatar updated successfully");
     },
 
-    onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message || "Failed to upload avatar"
-      );
+    onError: (error: unknown) => {
+      toast.error(getApiErrorMessage(error, "Failed to upload avatar"));
     },
   });
 }

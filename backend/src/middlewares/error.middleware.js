@@ -3,6 +3,22 @@ const AppError = require("../utils/AppError");
 const errorMiddleware = (err, req, res, next) => {
   let error = err;
 
+  if (err.name === "MulterError" || err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({
+      success: false,
+      message: err.code === "LIMIT_FILE_SIZE"
+        ? "Resume file must be 5 MB or smaller."
+        : err.message,
+    });
+  }
+
+  if (err.message === "Only PDF and DOCX files are allowed.") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
   // Convert unknown errors to AppError
   if (!(error instanceof AppError)) {
     const statusCode = error.statusCode || 500;

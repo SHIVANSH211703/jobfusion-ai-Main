@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import resumeService from "@/services/resume.service";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 interface JobMatchPayload {
   id: string;
@@ -26,10 +27,9 @@ export function useJobMatch() {
       );
     },
 
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(
-        error?.response?.data?.message ??
-          "Failed to analyze job match."
+        getApiErrorMessage(error, "Failed to analyze job match.")
       );
     },
   });

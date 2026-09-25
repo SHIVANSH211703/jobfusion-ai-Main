@@ -324,6 +324,51 @@ class AuthService {
         "Password reset successful. Please login again.",
     };
   }
+
+  async sendVerificationEmail(userId) {
+    const user = await userRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    if (user.isEmailVerified) {
+      return { message: "Email is already verified." };
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await userRepository.updateEmailVerificationToken(user._id, hashedToken, expires);
+
+    const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:3000";
+    const verificationUrl = `${frontendUrl}/verify-email?token=${token}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Your JobFusion AI Email",
+      html: `<p>Hello <strong>${user.name}</strong>,</p><p><a href="${verificationUrl}">Verify your email address</a></p><p>This link expires in 24 hours.</p>`,
+    });
+
+    return { message: "Verification email sent successfully." };
+  }
+
+  async verifyEmail(token) {
+    if (!token) {
+      throw new AppError("Verification token is required", 400);
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const user = await userRepository.findByEmailVerificationToken(hashedToken);
+
+    if (!user) {
+      throw new AppError("Invalid or expired verification token", 400);
+    }
+
+    await userRepository.verifyEmail(user._id);
+    return { message: "Email verified successfully." };
+  }
 }
 
 module.exports = new AuthService();
