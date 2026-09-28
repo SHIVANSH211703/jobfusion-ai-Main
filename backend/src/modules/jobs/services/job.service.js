@@ -4,6 +4,7 @@ const {
 
 const jobRepository = require("../repositories/job.repository");
 const savedJobRepository = require("../repositories/savedJob.repository");
+const savedSearchRepository = require("../repositories/savedSearch.repository");
 const applicationRepository = require("../repositories/application.repository");
 
 const Resume = require("../../resume/models/resume.model");
@@ -11,6 +12,8 @@ const Resume = require("../../resume/models/resume.model");
 const {
   calculateMatch,
 } = require("./jobMatch.service");
+const { APPLICATION_STATUSES } = require("../applicationStatus");
+const notificationService = require("../../notifications/services/notification.service");
 
 // ======================================================
 // SEARCH JOBS FROM ADZUNA
@@ -22,11 +25,14 @@ const searchJobs = async ({
   where = "",
   resultsPerPage = 20,
 }) => {
+  const safePage = Math.min(Math.max(Number(page) || 1, 1), 100);
+  const safeResultsPerPage = Math.min(Math.max(Number(resultsPerPage) || 20, 1), 50);
+
   const data = await searchJobsFromAdzuna({
-    page,
+    page: safePage,
     what,
     where,
-    resultsPerPage,
+    resultsPerPage: safeResultsPerPage,
   });
 
   const jobs = data.results.map((job) => ({
@@ -94,7 +100,10 @@ const getJobs = async ({
   maxSalary,
   jobType = "",
   days,
+  sort = "newest",
 }) => {
+  page = Math.min(Math.max(Number(page) || 1, 1), 500);
+  limit = Math.min(Math.max(Number(limit) || 20, 1), 100);
   const filter = {
     isActive: true,
   };
@@ -170,14 +179,18 @@ const getJobs = async ({
     }
   }
 
+  const sortOptions = {
+    newest: { postedAt: -1, createdAt: -1 },
+    salary_high: { "salary.max": -1, postedAt: -1 },
+    salary_low: { "salary.min": 1, postedAt: -1 },
+  };
+
   return jobRepository.findJobs(
     filter,
     {
       page,
       limit,
-      sort: {
-        postedAt: -1,
-      },
+      sort: sortOptions[sort] || sortOptions.newest,
     }
   );
 };
@@ -325,12 +338,20 @@ const applyToJob = async (
     throw error;
   }
 
-  return applicationRepository.createApplication(
-    userId,
-    jobId,
-    resumeId,
-    notes
-  );
+  try {
+    return await applicationRepository.createApplication(
+      userId,
+      jobId,
+      resumeId,
+      notes
+    );
+  } catch (error) {
+    if (error.code === 11000) {
+      error.message = "You have already applied to this job.";
+      error.statusCode = 409;
+    }
+    throw error;
+  }
 };
 
 // ======================================================
@@ -389,16 +410,8 @@ const updateApplicationStatus = async (
     throw error;
   }
 
-  const allowedStatuses = [
-    "applied",
-    "interview",
-    "offer",
-    "rejected",
-    "withdrawn",
-  ];
-
   if (
-    !allowedStatuses.includes(status)
+    !APPLICATION_STATUSES.includes(status)
   ) {
     const error = new Error(
       "Invalid application status"
@@ -409,12 +422,29 @@ const updateApplicationStatus = async (
     throw error;
   }
 
-  return applicationRepository.updateApplicationStatus(
+  const updatedApplication = await applicationRepository.updateApplicationStatus(
     userId,
     jobId,
     status,
     notes
   );
+
+  if (application.status !== status) {
+    const job = await jobRepository.findJobById(jobId);
+    try {
+      await notificationService.create({
+        userId,
+        type: "APPLICATION_UPDATE",
+        title: "Application status updated",
+        message: `${job?.company || "An employer"} application moved to ${status}.`,
+        metadata: { applicationId: application._id, jobId, status },
+      });
+    } catch (error) {
+      console.error("Application notification could not be stored", { code: error.code });
+    }
+  }
+
+  return updatedApplication;
 };
 
 // ======================================================
@@ -448,6 +478,39 @@ const matchJobWithResume = async ({
   });
 };
 
+const getSavedSearches = async (userId) => savedSearchRepository.findByUser(userId);
+
+const createSavedSearch = async (userId, data) => savedSearchRepository.create({
+  userId,
+  name: data.name,
+  filters: data.filters,
+  enabled: data.enabled ?? true,
+});
+
+const updateSavedSearch = async (userId, id, data) => {
+  const allowedFields = ["name", "filters", "enabled"];
+  const safeData = Object.fromEntries(
+    Object.entries(data).filter(([key]) => allowedFields.includes(key))
+  );
+  const updated = await savedSearchRepository.update(userId, id, safeData);
+  if (!updated) {
+    const error = new Error("Saved search not found");
+    error.statusCode = 404;
+    throw error;
+  }
+  return updated;
+};
+
+const deleteSavedSearch = async (userId, id) => {
+  const deleted = await savedSearchRepository.delete(userId, id);
+  if (!deleted) {
+    const error = new Error("Saved search not found");
+    error.statusCode = 404;
+    throw error;
+  }
+  return { message: "Saved search deleted successfully" };
+};
+
 // ======================================================
 // EXPORT
 // ======================================================
@@ -464,4 +527,8 @@ module.exports = {
   getApplication,
   updateApplicationStatus,
   matchJobWithResume,
+  getSavedSearches,
+  createSavedSearch,
+  updateSavedSearch,
+  deleteSavedSearch,
 };

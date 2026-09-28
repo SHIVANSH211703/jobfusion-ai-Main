@@ -9,6 +9,7 @@ const aiService = require("../../../services/ai.service");
 
 const resumeUploadRepository = require("../repositories/resumeUpload.repository");
 const resumeRepository = require("../../resume/repositories/resume.repository");
+const resumeVersionService = require("../../resume/services/resumeVersion.service");
 
 class ResumeUploadService {
   async uploadResume(file, userId) {
@@ -20,6 +21,14 @@ class ResumeUploadService {
       .extname(file.originalname)
       .replace(".", "")
       .toLowerCase();
+
+    if (!["pdf", "docx"].includes(extension)) {
+      throw new AppError("Only PDF and DOCX files are allowed.", 400);
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      throw new AppError("Resume file must be 5 MB or smaller.", 400);
+    }
 
     const cloudinaryResponse = await uploadFile(
       file.buffer,
@@ -139,7 +148,7 @@ class ResumeUploadService {
   }
 
  async createResume(userId, parsedResume) {
-  return await resumeRepository.create({
+  const resume = await resumeRepository.create({
     user: userId,
 
     title: parsedResume.title || "Imported Resume",
@@ -256,10 +265,19 @@ class ResumeUploadService {
         : [],
     })),
   });
+
+  try {
+    await resumeVersionService.createSnapshot(userId, resume, "upload", ["Imported resume"]);
+  } catch (error) {
+    await resumeRepository.delete(resume._id);
+    throw error;
+  }
+
+  return resume;
 }
-    async getUploadById(id) {
+    async getUploadById(id, userId) {
     const upload =
-      await resumeUploadRepository.findById(id);
+        await resumeUploadRepository.findById(id, userId);
 
     if (!upload) {
       throw new AppError(
@@ -277,9 +295,9 @@ class ResumeUploadService {
     );
   }
 
-  async deleteUpload(id) {
+  async deleteUpload(id, userId) {
     const upload =
-      await resumeUploadRepository.findById(id);
+      await resumeUploadRepository.findById(id, userId);
 
     if (!upload) {
       throw new AppError(
@@ -288,7 +306,7 @@ class ResumeUploadService {
       );
     }
 
-    await resumeUploadRepository.delete(id);
+    await resumeUploadRepository.delete(id, userId);
 
     return {
       message:

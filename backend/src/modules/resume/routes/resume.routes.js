@@ -6,11 +6,16 @@ const {
   updateResumeValidation,
   resumeIdValidation,
   publicResumeValidation,
+  analyzeResumeValidation,
   jobMatchValidation,
    coverLetterValidation,
 } = require("../validators/resume.validator");
 const authenticate = require("../../../middlewares/auth.middleware");
 const validate = require("../../../middlewares/validation.middleware");
+const aiRateLimit = require("../../../middlewares/aiRateLimit.middleware");
+const { versionIdValidation } = require("../validators/resumeVersion.validator");
+const { resumeTailoringValidation } = require("../validators/resumeTailoring.validator");
+const { careerGapValidation } = require("../validators/careerGap.validator");
 
 const router = express.Router();
 
@@ -34,6 +39,34 @@ router.get(
 */
 
 router.use(authenticate);
+
+router.get(
+  "/:id/versions",
+  resumeIdValidation,
+  validate,
+  resumeController.getVersions
+);
+
+router.post(
+  "/:id/versions",
+  resumeIdValidation,
+  validate,
+  resumeController.createVersion
+);
+
+router.get(
+  "/:id/versions/:versionId",
+  [...resumeIdValidation, ...versionIdValidation],
+  validate,
+  resumeController.getVersion
+);
+
+router.post(
+  "/:id/versions/:versionId/restore",
+  [...resumeIdValidation, ...versionIdValidation],
+  validate,
+  resumeController.restoreVersion
+);
 
 router.post(
   "/",
@@ -73,7 +106,8 @@ router.delete(
 
 router.post(
   "/:id/analyze",
-  resumeIdValidation,
+  aiRateLimit,
+  [...resumeIdValidation, ...analyzeResumeValidation],
   validate,
   resumeController.analyzeResume
 );
@@ -86,13 +120,33 @@ router.post(
 
 router.post(
   "/:id/improve",
+  aiRateLimit,
   resumeIdValidation,
   validate,
   resumeController.improveResume
 );
 
 router.post(
+  "/:id/tailor",
+  aiRateLimit,
+  resumeIdValidation,
+  resumeTailoringValidation,
+  validate,
+  resumeController.tailorResume
+);
+
+router.post(
+  "/:id/career-gap",
+  aiRateLimit,
+  resumeIdValidation,
+  careerGapValidation,
+  validate,
+  resumeController.analyzeCareerGap
+);
+
+router.post(
   "/:id/job-match",
+  aiRateLimit,
   resumeIdValidation,
   jobMatchValidation,
   validate,
@@ -101,6 +155,7 @@ router.post(
 
 router.post(
   "/:id/cover-letter",
+  aiRateLimit,
   resumeIdValidation,
   coverLetterValidation,
   validate,

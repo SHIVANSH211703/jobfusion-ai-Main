@@ -35,13 +35,13 @@ export default function VerifyEmailPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
-        {status === "loading" && <Loader2 className="mx-auto h-10 w-10 animate-spin text-violet-600" />}
+        {status === "loading" && <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />}
         {status === "success" && <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />}
         {status === "error" && <XCircle className="mx-auto h-10 w-10 text-destructive" />}
         <h1 className="mt-4 text-2xl font-bold">Email verification</h1>
         <p className="mt-2 text-sm text-muted-foreground">{message}</p>
         {status !== "loading" && (
-          <Link href="/login" className="mt-6 inline-flex rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white">
+          <Link href="/login" className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
             Continue to login
           </Link>
         )}

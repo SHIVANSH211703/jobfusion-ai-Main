@@ -2,116 +2,94 @@
 
 import { motion } from "framer-motion";
 import Container from "@/components/layout/Container";
-import {
-  Upload,
-  BrainCircuit,
-  Sparkles,
-  Rocket,
-} from "lucide-react";
+import { BrainCircuit, CheckCircle2, FileText, Rocket, Search, Sparkles, UserCheck } from "lucide-react";
 
 const steps = [
   {
     number: "01",
-    title: "Upload Resume",
-    description:
-      "Import your existing resume or create one from scratch with our AI-powered builder.",
-    icon: Upload,
+    title: "Build your profile",
+    description: "Set your target role, experience level, location preferences, and core technical skills.",
+    icon: UserCheck,
   },
   {
     number: "02",
-    title: "AI Analysis",
-    description:
-      "Our AI evaluates your resume against ATS systems and hiring best practices.",
-    icon: BrainCircuit,
+    title: "Upload & optimize your resume",
+    description: "Scan against ATS algorithms, identify keyword gaps, and tailor bullet points with AI assistance.",
+    icon: FileText,
   },
   {
     number: "03",
-    title: "Optimize",
-    description:
-      "Receive personalized improvements, keyword suggestions, and formatting upgrades.",
-    icon: Sparkles,
+    title: "Discover matching jobs",
+    description: "Explore verified opportunities scored by true skill match, salary range, and culture alignment.",
+    icon: Search,
   },
   {
     number: "04",
-    title: "Apply Smarter",
-    description:
-      "Export your optimized resume and confidently apply to your dream companies.",
+    title: "Apply and track progress",
+    description: "Manage applications across Applied, Screening, Interview, and Offer stages in one command center.",
     icon: Rocket,
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="relative py-32">
+    <section id="how-it-works" className="relative py-20 sm:py-28 lg:py-32 bg-secondary/30 border-y border-border">
       <Container>
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mx-auto max-w-3xl text-center"
         >
-          <div className="inline-flex items-center rounded-full border border-violet-500/20 bg-violet-500/10 px-5 py-2 text-sm text-violet-300">
-            How It Works
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Structured Process</span>
           </div>
-
-          <h2 className="mt-8 text-5xl font-black md:text-6xl">
-            Get Hired in
-            <span className="block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-              Four Simple Steps
-            </span>
+          <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            A Clear Workflow From Resume to Offer
           </h2>
-
-          <p className="mt-6 text-lg leading-8 text-white/60">
-            From resume creation to landing interviews, JobFusion AI helps
-            you through every stage of your career journey.
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Stop juggling spreadsheets and disparate job boards. JobFusion unifies your search into 4 straightforward stages.
           </p>
         </motion.div>
 
-        <div className="relative mt-24">
-          <div className="absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-violet-500/50 via-cyan-500/30 to-transparent lg:block" />
-
-          <div className="space-y-12">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-
-              return (
-                <motion.div
-                  key={step.number}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.12 }}
-                  className={`flex flex-col items-center gap-10 lg:flex-row ${
-                    index % 2 === 1 ? "lg:flex-row-reverse" : ""
-                  }`}
-                >
-                  <div className="flex-1">
-                    <div className="rounded-[32px] border border-white/10 bg-white/5 p-10 backdrop-blur-xl">
-                      <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-500">
-                        <Icon className="h-8 w-8 text-white" />
-                      </div>
-
-                      <span className="text-sm font-semibold tracking-[0.25em] text-violet-300">
-                        STEP {step.number}
-                      </span>
-
-                      <h3 className="mt-3 text-3xl font-bold">
-                        {step.title}
-                      </h3>
-
-                      <p className="mt-4 leading-7 text-white/60">
-                        {step.description}
-                      </p>
-                    </div>
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 relative">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={step.number}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+                className="relative rounded-2xl border border-border bg-card p-6 shadow-xs flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold text-sm border border-primary/20">
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="text-2xl font-extrabold text-muted-foreground/30 font-mono">
+                      {step.number}
+                    </span>
                   </div>
 
-                  <div className="relative z-10 hidden h-8 w-8 rounded-full border-4 border-slate-950 bg-gradient-to-br from-violet-500 to-cyan-500 lg:block" />
+                  <h3 className="mt-5 text-lg font-bold tracking-tight text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {step.description}
+                  </p>
+                </div>
 
-                  <div className="hidden flex-1 lg:block" />
-                </motion.div>
-              );
-            })}
-          </div>
+                <div className="mt-6 pt-4 border-t border-border flex items-center gap-1.5 text-xs font-semibold text-primary">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  <span>Step {step.number} Complete</span>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </Container>
     </section>

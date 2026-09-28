@@ -1,6 +1,7 @@
 const asyncHandler = require("../../../utils/asyncHandler");
 
 const resumeService = require("../services/resume.service");
+const resumeVersionService = require("../services/resumeVersion.service");
 const resumeDTO = require("../dto/resume.dto");
 
 class ResumeController {
@@ -82,9 +83,11 @@ class ResumeController {
    * POST /api/v1/resume/:id/analyze
    */
   analyzeResume = asyncHandler(async (req, res) => {
+    const { jobDescription } = req.body || {};
     const result = await resumeService.analyzeResume(
       req.user.id,
-      req.params.id
+      req.params.id,
+      jobDescription
     );
 
     res.status(200).json(result);
@@ -134,6 +137,56 @@ generateCoverLetter = asyncHandler(async (req, res) => {
 
   res.status(200).json(result);
 });
+
+  getVersions = asyncHandler(async (req, res) => {
+    const versions = await resumeVersionService.listVersions(req.user.id, req.params.id);
+    res.status(200).json({ success: true, data: versions });
+  });
+
+  tailorResume = asyncHandler(async (req, res) => {
+    const result = await resumeService.tailorResume(
+      req.user.id,
+      req.params.id,
+      req.body.jobDescription
+    );
+    res.status(200).json(result);
+  });
+
+  analyzeCareerGap = asyncHandler(async (req, res) => {
+    const result = await resumeService.analyzeCareerGap(
+      req.user.id,
+      req.params.id,
+      req.body.targetRole
+    );
+    res.status(200).json(result);
+  });
+
+  getVersion = asyncHandler(async (req, res) => {
+    const version = await resumeVersionService.getVersion(
+      req.user.id,
+      req.params.id,
+      req.params.versionId
+    );
+    res.status(200).json({ success: true, data: version });
+  });
+
+  createVersion = asyncHandler(async (req, res) => {
+    const version = await resumeVersionService.createCheckpoint(req.user.id, req.params.id);
+    res.status(201).json({ success: true, message: "Resume checkpoint created", data: version });
+  });
+
+  restoreVersion = asyncHandler(async (req, res) => {
+    const resume = await resumeVersionService.restoreVersion(
+      req.user.id,
+      req.params.id,
+      req.params.versionId
+    );
+    res.status(200).json({
+      success: true,
+      message: "Resume version restored successfully",
+      data: resumeDTO.resumeResponse(resume),
+    });
+  });
 
 }
 

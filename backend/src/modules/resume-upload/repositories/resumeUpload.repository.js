@@ -5,8 +5,8 @@ class ResumeUploadRepository {
     return await ResumeUpload.create(data);
   }
 
-  async findById(id) {
-    return await ResumeUpload.findById(id).populate("resume");
+  async findById(id, userId) {
+    return await ResumeUpload.findOne({ _id: id, user: userId }).populate("resume");
   }
 
   async findByUser(userId) {
@@ -46,8 +46,8 @@ class ResumeUploadRepository {
     );
   }
 
-  async delete(id) {
-    return await ResumeUpload.findByIdAndDelete(id);
+  async delete(id, userId) {
+    return await ResumeUpload.findOneAndDelete({ _id: id, user: userId });
   }
 }
 

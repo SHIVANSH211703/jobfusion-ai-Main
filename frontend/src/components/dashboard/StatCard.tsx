@@ -1,31 +1,33 @@
+import type { ReactNode } from "react";
 import { ArrowUpRight, LucideIcon } from "lucide-react";
 
 interface Props {
   title: string;
-  value: string;
+  value: ReactNode;
   icon: LucideIcon;
+  accentClass?: string;
 }
 
 export default function StatCard({
   title,
   value,
   icon: Icon,
+  accentClass = "border-primary/20 bg-primary/10 text-primary",
 }: Props) {
   return (
-    <div className="group rounded-2xl border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-violet-500 hover:shadow-xl">
+    <div className="group surface-panel relative overflow-hidden rounded-2xl border border-border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
       <div className="flex items-center justify-between">
-        <div className="rounded-xl bg-violet-500/10 p-3">
-          <Icon className="h-6 w-6 text-violet-600" />
+        <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${accentClass}`}>
+          <Icon className="h-5 w-5" />
         </div>
 
-        <ArrowUpRight className="h-5 w-5 text-muted-foreground transition group-hover:text-violet-600" />
+        <ArrowUpRight className="h-4 w-4 text-muted-foreground/60 transition group-hover:text-primary" />
       </div>
 
-      <h2 className="mt-6 text-3xl font-bold">{value}</h2>
-
-      <p className="mt-2 text-sm text-muted-foreground">
-        {title}
-      </p>
+      <div className="mt-6 space-y-2">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{title}</p>
+        <div className="min-h-[2.25rem]">{value}</div>
+      </div>
     </div>
   );
 }

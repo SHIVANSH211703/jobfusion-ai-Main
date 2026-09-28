@@ -80,6 +80,15 @@ export interface DashboardUserSummary {
 export interface DashboardData {
   stats: DashboardStatCounts;
   recentApplications: DashboardApplicationSummary[];
+  upcomingInterviews: Array<{
+    _id: string;
+    applicationId: string | null;
+    scheduledAt: string;
+    round: string;
+    type: string;
+    status: string;
+    job: { title: string; company: string } | null;
+  }>;
   savedJobs: DashboardSavedJobSummary[];
   recommendedJobs: DashboardJobSummary[];
   latestResume: DashboardResume | null;
@@ -90,4 +99,19 @@ export interface DashboardResponse {
   success: boolean;
   message: string;
   data: DashboardData;
+}
+
+export interface ApplicationAnalytics {
+  totalApplications: number;
+  statuses: Record<string, number>;
+  responseRate: number | null;
+  interviewConversion: number | null;
+  offerRate: number | null;
+  applicationsOverTime: Array<{ year: number; month: number; count: number }>;
+}
+
+export interface ApplicationAnalyticsResponse {
+  success: boolean;
+  message: string;
+  data: ApplicationAnalytics;
 }

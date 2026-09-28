@@ -2,7 +2,7 @@
 
 import { ReactNode } from "react";
 import Link from "next/link";
-import { BriefcaseBusiness } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -16,54 +16,48 @@ export default function AuthLayout({
   subtitle,
 }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Left Section */}
-      <div className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,.2),transparent_40%)]" />
+    <div className="relative min-h-screen bg-background text-foreground flex flex-col justify-between">
+      {/* Top Header */}
+      <header className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between border-b border-border bg-card/60 backdrop-blur-xs">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-primary text-white shadow-xs">
+            <Sparkles className="h-4 w-4" />
+          </span>
+          <span className="text-sm sm:text-base font-bold tracking-tight text-foreground">JobFusion AI</span>
+        </Link>
 
-        <div className="relative z-10 flex flex-col justify-between p-12 w-full">
-          <Link
-            href="/"
-            className="flex items-center gap-3 text-2xl font-bold"
-          >
-            <BriefcaseBusiness className="h-8 w-8" />
-            JobFusion AI
-          </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span className="hidden xs:inline">Back to Home</span>
+          <span className="xs:hidden">Home</span>
+        </Link>
+      </header>
 
-          <div>
-            <h2 className="text-5xl font-bold leading-tight">
-              Build your dream career with AI.
-            </h2>
-
-            <p className="mt-6 text-lg text-white/90 leading-8 max-w-lg">
-              Create ATS-friendly resumes, generate AI cover letters,
-              practice interviews, and track every application from one
-              powerful dashboard.
-            </p>
-          </div>
-
-          <div className="text-sm text-white/80">
-            © {new Date().getFullYear()} JobFusion AI
-          </div>
-        </div>
-      </div>
-
-      {/* Right Section */}
-      <div className="flex items-center justify-center bg-background px-6 py-10">
+      {/* Main Container */}
+      <main className="flex-1 flex items-center justify-center p-3.5 sm:p-6 lg:p-8">
         <div className="w-full max-w-md">
-          <div className="mb-10">
-            <h1 className="text-4xl font-bold tracking-tight">
+          <div className="text-center mb-5 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-foreground break-words">
               {title}
             </h1>
-
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground">
               {subtitle}
             </p>
           </div>
 
-          {children}
+          <div className="rounded-2xl sm:rounded-3xl border border-border bg-card p-4.5 sm:p-8 shadow-sm">
+            {children}
+          </div>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border">
+        © {new Date().getFullYear()} JobFusion AI. Professional Career Intelligence.
+      </footer>
     </div>
   );
 }

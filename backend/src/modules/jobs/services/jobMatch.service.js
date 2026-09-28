@@ -89,35 +89,7 @@ const calculateMatch = async ({
   // 4. Return AI result
   // ----------------------------------------------------
 
-  return {
-    matchScore:
-      Number(aiResult.matchScore) || 0,
-
-    matchedKeywords:
-      Array.isArray(aiResult.matchedKeywords)
-        ? aiResult.matchedKeywords
-        : [],
-
-    missingKeywords:
-      Array.isArray(aiResult.missingKeywords)
-        ? aiResult.missingKeywords
-        : [],
-
-    strengths:
-      Array.isArray(aiResult.strengths)
-        ? aiResult.strengths
-        : [],
-
-    weaknesses:
-      Array.isArray(aiResult.weaknesses)
-        ? aiResult.weaknesses
-        : [],
-
-    recommendations:
-      Array.isArray(aiResult.recommendations)
-        ? aiResult.recommendations
-        : [],
-  };
+  return aiResult;
 };
 
 module.exports = {

@@ -3,195 +3,247 @@
 import { motion } from "framer-motion";
 import Container from "@/components/layout/Container";
 import {
+  ArrowRight,
+  BarChart3,
   Bot,
   BrainCircuit,
-  BriefcaseBusiness,
+  Briefcase,
+  CheckCircle2,
   FileText,
+  Route,
   Sparkles,
-  BarChart3,
-  ArrowUpRight,
+  TrendingUp,
 } from "lucide-react";
-
-const cards = [
-  {
-    title: "AI Resume Builder",
-    description:
-      "Generate ATS-friendly resumes with AI suggestions tailored to every job.",
-    icon: FileText,
-    className: "lg:col-span-2 lg:row-span-2",
-    gradient: "from-violet-600/20 to-fuchsia-500/10",
-  },
-  {
-    title: "Smart Job Matching",
-    description:
-      "Find opportunities that match your skills instantly.",
-    icon: BriefcaseBusiness,
-    className: "",
-    gradient: "from-cyan-500/20 to-sky-500/10",
-  },
-  {
-    title: "AI Interview Coach",
-    description:
-      "Practice HR & technical interviews with instant AI feedback.",
-    icon: Bot,
-    className: "",
-    gradient: "from-pink-500/20 to-rose-500/10",
-  },
-  {
-    title: "Resume Analyzer",
-    description:
-      "Boost your ATS score with personalized recommendations.",
-    icon: BrainCircuit,
-    className: "",
-    gradient: "from-emerald-500/20 to-teal-500/10",
-  },
-  {
-    title: "Career Analytics",
-    description:
-      "Track applications, interviews and career growth with beautiful insights.",
-    icon: BarChart3,
-    className: "lg:col-span-2",
-    gradient: "from-orange-500/20 to-yellow-500/10",
-  },
-];
+import { Badge } from "@/components/ui/badge";
 
 export default function Features() {
   return (
-    <section
-      id="features"
-      className="relative py-32"
-    >
+    <section id="features" className="relative py-20 sm:py-28 lg:py-32">
       <Container>
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center"
+          className="mx-auto max-w-3xl text-center"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-5 py-2 text-sm text-violet-300">
-            <Sparkles className="h-4 w-4" />
-            Platform Features
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Product Capabilities</span>
           </div>
-
-          <h2 className="mt-8 text-5xl font-black md:text-6xl">
-            Everything You Need
-            <span className="mt-2 block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-              To Get Hired Faster
-            </span>
+          <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            Everything You Need for a Modern Career Search
           </h2>
-
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/60">
-            JobFusion AI combines resume creation, interview preparation,
-            ATS optimization, analytics and smart job discovery into one
-            intelligent platform.
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Purpose-built tools that turn career planning, resume tailoring, and job applications into a single intelligent workflow.
           </p>
         </motion.div>
 
-        <div className="mt-20 grid auto-rows-[260px] gap-6 lg:grid-cols-3">
-          {cards.map((card, index) => {
-            const Icon = card.icon;
-
-            return (
-              <motion.div
-                key={card.title}
-                initial={{
-                  opacity: 0,
-                  y: 40,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                }}
-                transition={{
-                  delay: index * 0.08,
-                }}
-                whileHover={{
-                  y: -8,
-                }}
-                className={`group relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl ${card.className}`}
-              >
-                <div
-                  className={`absolute inset-0 bg-gradient-to-br ${card.gradient}`}
-                />
-
-                <div className="relative flex h-full flex-col justify-between p-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10">
-                      <Icon className="h-8 w-8 text-white" />
-                    </div>
-
-                    <ArrowUpRight className="h-6 w-6 text-white/30 transition group-hover:translate-x-1 group-hover:-translate-y-1 group-hover:text-white" />
-                  </div>
-
-                  <div>
-                    <h3 className="text-3xl font-bold">
-                      {card.title}
-                    </h3>
-
-                    <p className="mt-4 max-w-md leading-7 text-white/65">
-                      {card.description}
-                    </p>
-                  </div>
-
-                  {card.title === "AI Resume Builder" && (
-                    <div className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-5">
-                      <div className="mb-3 flex items-center justify-between">
-                        <span className="text-sm text-white/60">
-                          ATS Score
-                        </span>
-
-                        <span className="font-bold text-emerald-400">
-                          94%
-                        </span>
-                      </div>
-
-                      <div className="h-3 overflow-hidden rounded-full bg-white/10">
-                        <motion.div
-                          initial={{
-                            width: 0,
-                          }}
-                          whileInView={{
-                            width: "94%",
-                          }}
-                          transition={{
-                            duration: 1.4,
-                          }}
-                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {card.title === "Career Analytics" && (
-                    <div className="mt-6 flex gap-4">
-                      <div className="flex-1 rounded-2xl bg-white/10 p-4">
-                        <p className="text-xs text-white/50">
-                          Applications
-                        </p>
-
-                        <h4 className="mt-2 text-3xl font-black text-cyan-400">
-                          128
-                        </h4>
-                      </div>
-
-                      <div className="flex-1 rounded-2xl bg-white/10 p-4">
-                        <p className="text-xs text-white/50">
-                          Interviews
-                        </p>
-
-                        <h4 className="mt-2 text-3xl font-black text-violet-400">
-                          21
-                        </h4>
-                      </div>
-                    </div>
-                  )}
+        {/* Feature Grid: Editorial & Asymmetric Showcase */}
+        <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Card 1: Resume Intelligence & ATS (Wide) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="rounded-3xl border border-border bg-card p-6 shadow-xs lg:col-span-2 sm:p-8 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+                  <FileText className="h-5 w-5" />
                 </div>
-              </motion.div>
-            );
-          })}
+                <Badge variant="intelligence">ATS Optimized</Badge>
+              </div>
+              <h3 className="mt-5 text-2xl font-bold tracking-tight text-foreground">
+                Resume Intelligence & ATS Optimization
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base max-w-xl">
+                Scan your resume against real role algorithms. Detect missing keywords, measure formatting compliance, and receive instant rewrite recommendations.
+              </p>
+            </div>
+
+            {/* Illustrative Product Widget */}
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/50 p-4 sm:p-5">
+              <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                <span>ATS Analysis Output</span>
+                <span className="text-emerald-600 font-bold">94 / 100 Score</span>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-3 mt-3">
+                <div className="rounded-xl border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Keyword Coverage</p>
+                  <p className="text-lg font-bold text-foreground mt-0.5">92%</p>
+                  <div className="h-1.5 w-full bg-muted rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-primary rounded-full w-[92%]" />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Impact Metrics</p>
+                  <p className="text-lg font-bold text-foreground mt-0.5">88%</p>
+                  <div className="h-1.5 w-full bg-muted rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-accent rounded-full w-[88%]" />
+                  </div>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-3">
+                  <p className="text-xs text-muted-foreground">Format Readability</p>
+                  <p className="text-lg font-bold text-foreground mt-0.5">98%</p>
+                  <div className="h-1.5 w-full bg-muted rounded-full mt-2 overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full w-[98%]" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 2: AI Job Matching */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="rounded-3xl border border-border bg-card p-6 shadow-xs sm:p-8 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20">
+                  <Briefcase className="h-5 w-5" />
+                </div>
+                <Badge variant="default">91% Precision</Badge>
+              </div>
+              <h3 className="mt-5 text-2xl font-bold tracking-tight text-foreground">
+                AI Job Matching
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Match verified live postings based on your real experience and skills, not generic keyword search.
+              </p>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/50 p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-bold text-foreground">Staff Frontend Engineer</p>
+                  <p className="text-[11px] text-muted-foreground">Global Tech Corp • Remote</p>
+                </div>
+                <span className="rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-bold px-2 py-0.5">
+                  91% Match
+                </span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="rounded-md bg-card border border-border px-2 py-0.5 text-[10px] text-muted-foreground">Next.js</span>
+                <span className="rounded-md bg-card border border-border px-2 py-0.5 text-[10px] text-muted-foreground">TypeScript</span>
+                <span className="rounded-md bg-card border border-border px-2 py-0.5 text-[10px] text-muted-foreground">Architecture</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 3: Application Tracking Pipeline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+            className="rounded-3xl border border-border bg-card p-6 shadow-xs sm:p-8 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <Badge variant="outline">Pipeline</Badge>
+              </div>
+              <h3 className="mt-5 text-2xl font-bold tracking-tight text-foreground">
+                Application Lifecycle Tracking
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Move candidates effortlessly through Applied, Screening, Interview, and Offer stages.
+              </p>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/50 p-3 space-y-2">
+              <div className="flex items-center justify-between rounded-xl bg-card border border-border px-3 py-2 text-xs">
+                <span className="font-semibold text-foreground">Applied</span>
+                <span className="font-bold text-primary">12</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-card border border-border px-3 py-2 text-xs">
+                <span className="font-semibold text-foreground">Screening</span>
+                <span className="font-bold text-accent">5</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-card border border-border px-3 py-2 text-xs">
+                <span className="font-semibold text-foreground">Interviews</span>
+                <span className="font-bold text-emerald-600">3 Scheduled</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Card 4: Interview Preparation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="rounded-3xl border border-border bg-card p-6 shadow-xs sm:p-8 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20">
+                  <Bot className="h-5 w-5" />
+                </div>
+                <Badge variant="intelligence">AI Coach</Badge>
+              </div>
+              <h3 className="mt-5 text-2xl font-bold tracking-tight text-foreground">
+                AI Interview Preparation
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Generate tailored technical and behavioral questions mapped directly to the job description and your resume.
+              </p>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/50 p-4">
+              <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Custom Question Generator</span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground leading-relaxed italic bg-card p-2.5 rounded-xl border border-border">
+                &ldquo;Describe how you scaled React performance for high-traffic enterprise applications.&rdquo;
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 5: Career Intelligence Roadmap (Wide) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.25 }}
+            className="rounded-3xl border border-border bg-card p-6 shadow-xs lg:col-span-3 sm:p-8 flex flex-col justify-between"
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+                    <Route className="h-5 w-5" />
+                  </div>
+                  <Badge variant="default">Career Intelligence</Badge>
+                </div>
+                <h3 className="mt-4 text-2xl font-bold tracking-tight text-foreground">
+                  Skill Gap & Career Roadmap
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground max-w-2xl">
+                  Benchmark your current profile against senior roles. Identify high-leverage skills to learn and follow a generated milestone plan.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="rounded-xl border border-border bg-secondary/60 px-4 py-2.5">
+                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">Target Role</p>
+                  <p className="text-sm font-bold text-foreground">Engineering Manager</p>
+                </div>
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5">
+                  <p className="text-[10px] font-semibold uppercase text-emerald-700 dark:text-emerald-300">Ready Skills</p>
+                  <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200">8 of 10 matched</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </Container>
     </section>

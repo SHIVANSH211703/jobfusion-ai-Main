@@ -10,6 +10,10 @@ import type {
   ImproveResumeResponse,
   JobMatchResponse,
   CoverLetterResponse,
+  ResumeVersionsResponse,
+  ResumeVersionResponse,
+  ResumeTailoringResponse,
+  CareerGapResponse,
 } from "@/types/resume";
 
 interface MessageResponse {
@@ -19,6 +23,10 @@ interface MessageResponse {
 
 interface JobMatchRequest {
   jobDescription: string;
+}
+
+interface AnalyzeResumeRequest {
+  jobDescription?: string;
 }
 
 interface CoverLetterRequest {
@@ -112,11 +120,13 @@ class ResumeService {
   }
 
   async analyzeResume(
-    id: string
+    id: string,
+    payload?: AnalyzeResumeRequest
   ): Promise<ATSAnalysisResponse> {
     const response =
       await axiosInstance.post<ATSAnalysisResponse>(
-        API.RESUME.ANALYZE(id)
+        API.RESUME.ANALYZE(id),
+        payload ?? {}
       );
 
     return response.data;
@@ -130,6 +140,19 @@ class ResumeService {
         API.RESUME.IMPROVE(id)
       );
 
+    return response.data;
+  }
+
+  async tailorResume(id: string, jobDescription: string): Promise<ResumeTailoringResponse> {
+    const response = await axiosInstance.post<ResumeTailoringResponse>(
+      API.RESUME.TAILOR(id),
+      { jobDescription }
+    );
+    return response.data;
+  }
+
+  async analyzeCareerGap(id: string, targetRole: string): Promise<CareerGapResponse> {
+    const response = await axiosInstance.post<CareerGapResponse>(API.RESUME.CAREER_GAP(id), { targetRole });
     return response.data;
   }
 
@@ -156,6 +179,26 @@ class ResumeService {
         payload
       );
 
+    return response.data;
+  }
+
+  async getVersions(id: string): Promise<ResumeVersionsResponse> {
+    const response = await axiosInstance.get<ResumeVersionsResponse>(API.RESUME.VERSIONS(id));
+    return response.data;
+  }
+
+  async getVersion(id: string, versionId: string): Promise<ResumeVersionResponse> {
+    const response = await axiosInstance.get<ResumeVersionResponse>(API.RESUME.VERSION(id, versionId));
+    return response.data;
+  }
+
+  async createVersion(id: string): Promise<ResumeVersionResponse> {
+    const response = await axiosInstance.post<ResumeVersionResponse>(API.RESUME.VERSIONS(id));
+    return response.data;
+  }
+
+  async restoreVersion(id: string, versionId: string): Promise<ResumeResponse> {
+    const response = await axiosInstance.post<ResumeResponse>(API.RESUME.RESTORE_VERSION(id, versionId));
     return response.data;
   }
 }

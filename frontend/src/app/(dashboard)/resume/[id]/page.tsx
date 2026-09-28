@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 
 import ResumeForm from "@/components/resume/ResumeForm";
 import ResumeActions from "@/components/resume/ResumeActions";
+import ResumeVersionHistory from "@/components/resume/ResumeVersionHistory";
 
 import { useResume } from "@/hooks/resume/useResumes";
 
@@ -35,32 +36,31 @@ export default function ResumeEditorPage() {
   }
 
   return (
-    <div className="space-y-8 p-8">
-
-      <div className="flex items-center justify-between">
-
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Edit Resume
           </h1>
 
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm">
             Update your resume and use AI tools.
           </p>
-
         </div>
 
-        <ResumeActions
-          resumeId={resume._id ?? resume.id!}
-        />
-
+        <div className="w-full lg:max-w-md">
+          <ResumeActions
+            resumeId={resume._id ?? resume.id!}
+          />
+        </div>
       </div>
 
       <ResumeForm
         mode="edit"
         resume={resume}
       />
+
+      <ResumeVersionHistory resumeId={resume._id ?? resume.id!} />
 
     </div>
   );

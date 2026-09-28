@@ -489,8 +489,8 @@ export default function JobDetailsPage() {
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/10">
-            <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
 
           <p className="text-sm text-muted-foreground">
@@ -512,7 +512,7 @@ export default function JobDetailsPage() {
       <div className="mx-auto max-w-4xl py-10">
         <Link
           href="/jobs"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-violet-500"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" />
 
@@ -529,13 +529,13 @@ export default function JobDetailsPage() {
           </h2>
 
           <p className="mt-2 text-sm text-muted-foreground">
-            We couldn't load this job. It may no
+            We couldn&apos;t load this job. It may no
             longer be available.
           </p>
 
           <Link
             href="/jobs"
-            className="mt-6 inline-flex rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+            className="mt-6 inline-flex rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             Browse Jobs
           </Link>
@@ -553,7 +553,7 @@ export default function JobDetailsPage() {
 
         <Link
           href="/jobs"
-          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-violet-500"
+          className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"
         >
           <ArrowLeft className="h-4 w-4" />
 
@@ -564,19 +564,19 @@ export default function JobDetailsPage() {
             JOB HEADER
         ====================================================== */}
 
-        <section className="rounded-3xl border border-border/70 bg-card/60 p-6 shadow-sm md:p-8">
+        <section className="rounded-2xl sm:rounded-3xl border border-border/70 bg-card/60 p-4.5 sm:p-6 md:p-8 shadow-sm">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             {/* Job information */}
-            <div className="flex gap-5">
+            <div className="flex gap-4 sm:gap-5">
               {/* Company icon */}
-              <div className="hidden h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-violet-600/10 sm:flex">
-                <Building2 className="h-7 w-7 text-violet-500" />
+              <div className="hidden h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-2xl bg-primary/10 sm:flex">
+                <Building2 className="h-7 w-7 text-primary" />
               </div>
 
               <div>
                 {/* Title */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                  <h1 className="text-xl sm:text-2xl font-bold tracking-tight md:text-3xl break-words">
                     {job.title}
                   </h1>
 
@@ -588,13 +588,13 @@ export default function JobDetailsPage() {
                 </div>
 
                 {/* Company */}
-                <p className="mt-2 text-base font-medium text-muted-foreground">
+                <p className="mt-2 text-sm sm:text-base font-medium text-muted-foreground">
                   {job.company}
                 </p>
 
                 {/* Meta */}
-                <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-2">
+                <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2.5 sm:gap-x-5 sm:gap-y-3 text-xs sm:text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5 sm:gap-2">
                     <MapPin className="h-4 w-4" />
 
                     {job.location ||
@@ -602,14 +602,14 @@ export default function JobDetailsPage() {
                   </span>
 
                   {job.jobType && (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-1.5 sm:gap-2">
                       <Briefcase className="h-4 w-4" />
 
                       {job.jobType}
                     </span>
                   )}
 
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-1.5 sm:gap-2">
                     <Clock3 className="h-4 w-4" />
 
                     {formatPostedDate(
@@ -621,16 +621,16 @@ export default function JobDetailsPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
               {/* Save */}
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={saveMutation.isPending}
-                className={`flex items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
+                className={`flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border px-4 sm:px-5 py-2.5 text-sm font-semibold transition ${
                   isSaved
-                    ? "border-violet-500/40 bg-violet-500/10 text-violet-500 hover:bg-violet-500/15"
-                    : "border-border hover:border-violet-500/40 hover:bg-violet-500/5"
+                    ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/15"
+                    : "border-border hover:border-primary/40 hover:bg-primary/5"
                 } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {saveMutation.isPending ? (
@@ -660,7 +660,7 @@ export default function JobDetailsPage() {
                       behavior: "smooth",
                     });
                 }}
-                className="flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700"
+                className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-accent px-4 sm:px-5 py-2.5 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
               >
                 <Sparkles className="h-4 w-4" />
 
@@ -755,7 +755,7 @@ export default function JobDetailsPage() {
                   (skill: string) => (
                       <span
                         key={skill}
-                        className="rounded-full border border-border bg-background px-4 py-2 text-sm text-muted-foreground transition hover:border-violet-500/40 hover:text-violet-500"
+                        className="rounded-full border border-border bg-background px-4 py-2 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-primary"
                       >
                         {skill}
                       </span>
@@ -775,11 +775,11 @@ export default function JobDetailsPage() {
 
             <section
               id="ai-match"
-              className="rounded-3xl border border-violet-500/20 bg-violet-500/5 p-6 shadow-sm md:p-8"
+              className="rounded-3xl border border-accent/20 bg-accent/5 p-6 shadow-sm md:p-8"
             >
               <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-600/15">
-                  <Sparkles className="h-6 w-6 text-violet-500" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/15">
+                  <Sparkles className="h-6 w-6 text-accent" />
                 </div>
 
                 <div>
@@ -795,9 +795,9 @@ export default function JobDetailsPage() {
                 </div>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-violet-500/10 bg-background/60 p-5">
+              <div className="mt-6 rounded-2xl border border-accent/15 bg-card p-5">
                 <div className="flex items-start gap-3">
-                  <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-violet-500" />
+                  <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
 
                   <div>
                     <p className="text-sm font-semibold">
@@ -827,7 +827,7 @@ export default function JobDetailsPage() {
                       resumeId: selectedResumeId,
                     });
                   }}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-accent-foreground transition hover:bg-accent/90"
                 >
                   <Sparkles className="h-4 w-4" />
 
@@ -835,10 +835,30 @@ export default function JobDetailsPage() {
                 </button>
 
                 {jobMatchMutation.data && (
-                  <div className="mt-4 rounded-xl border border-violet-500/20 bg-violet-500/5 p-4 text-sm">
+                  <div className="mt-4 rounded-xl border border-accent/20 bg-accent/5 p-4 text-sm">
                     <p className="font-semibold">Match score: {jobMatchMutation.data.data.matchScore}%</p>
-                    <p className="mt-2 text-muted-foreground">Matched skills: {jobMatchMutation.data.data.matchedKeywords.join(", ") || "None returned"}</p>
-                    <p className="mt-1 text-muted-foreground">Missing skills: {jobMatchMutation.data.data.missingKeywords.join(", ") || "None returned"}</p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {Object.entries(jobMatchMutation.data.data.categories).map(([category, score]) => (
+                        <div key={category}>
+                          <div className="mb-1 flex justify-between text-xs capitalize">
+                            <span className="text-muted-foreground">{category}</span>
+                            <span>{score === null ? "Not enough data" : `${score}%`}</span>
+                          </div>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                            {score !== null && <div className="h-full rounded-full bg-primary" style={{ width: `${score}%` }} />}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-4 text-muted-foreground">Matched skills: {jobMatchMutation.data.data.matchedSkills.join(", ") || "None identified"}</p>
+                    <p className="mt-1 text-muted-foreground">Missing skills: {jobMatchMutation.data.data.missingSkills.join(", ") || "None identified"}</p>
+                    <p className="mt-1 text-muted-foreground">Matched keywords: {jobMatchMutation.data.data.matchedKeywords.join(", ") || "None identified"}</p>
+                    <p className="mt-1 text-muted-foreground">Missing keywords: {jobMatchMutation.data.data.missingKeywords.join(", ") || "None identified"}</p>
+                    {jobMatchMutation.data.data.recommendations.length > 0 && (
+                      <ul className="mt-3 list-disc space-y-1 pl-5 text-muted-foreground">
+                        {jobMatchMutation.data.data.recommendations.map((recommendation, index) => <li key={`${recommendation}-${index}`}>{recommendation}</li>)}
+                      </ul>
+                    )}
                   </div>
                 )}
               </div>
@@ -868,7 +888,7 @@ export default function JobDetailsPage() {
                 <button
                   type="button"
                   onClick={handleOpenApply}
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                 >
                   Apply Now
 
@@ -905,10 +925,10 @@ export default function JobDetailsPage() {
                      * =================================================
                      */
 
-                    <div className="rounded-2xl border border-violet-500/20 bg-violet-500/5 p-5">
+                    <div className="rounded-2xl border border-border bg-card p-5">
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10">
-                          <FileText className="h-5 w-5 text-violet-500" />
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                          <FileText className="h-5 w-5 text-primary" />
                         </div>
 
                         <div>
@@ -926,7 +946,7 @@ export default function JobDetailsPage() {
                       <div className="mt-4 space-y-2">
                         {/* Direct PDF Upload */}
                         <label
-                          className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-violet-700 ${
+                          className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 ${
                             resumeUploadMutation.isPending
                               ? "cursor-not-allowed opacity-60"
                               : ""
@@ -1017,21 +1037,21 @@ export default function JobDetailsPage() {
                                 }
                                 className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
                                   selected
-                                    ? "border-violet-500 bg-violet-500/10"
+                                    ? "border-primary bg-primary/10"
                                     : "border-border hover:bg-muted"
                                 }`}
                               >
                                 <div
                                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
                                     selected
-                                      ? "bg-violet-500/15"
+                                      ? "bg-primary/15"
                                       : "bg-muted"
                                   }`}
                                 >
                                   <FileText
                                     className={`h-5 w-5 ${
                                       selected
-                                        ? "text-violet-500"
+                                        ? "text-primary"
                                         : "text-muted-foreground"
                                     }`}
                                   />
@@ -1044,7 +1064,7 @@ export default function JobDetailsPage() {
                                     </p>
 
                                     {resume.isDefault && (
-                                      <span className="shrink-0 rounded-full bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-500">
+                                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                                         Default
                                       </span>
                                     )}
@@ -1058,7 +1078,7 @@ export default function JobDetailsPage() {
                                 </div>
 
                                 {selected && (
-                                  <CheckCircle2 className="h-5 w-5 shrink-0 text-violet-500" />
+                                  <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
                                 )}
                               </button>
                             );
@@ -1072,7 +1092,7 @@ export default function JobDetailsPage() {
 
                       <div className="space-y-2">
                         <label
-                          className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-violet-500/40 px-4 py-3 text-sm font-medium text-violet-500 transition hover:bg-violet-500/5 ${
+                          className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/5 ${
                             resumeUploadMutation.isPending
                               ? "cursor-not-allowed opacity-60"
                               : ""
@@ -1131,7 +1151,7 @@ export default function JobDetailsPage() {
                           }
                           placeholder="Add an optional note..."
                           rows={3}
-                          className="mt-2 w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none transition focus:border-violet-500"
+                          className="mt-2 w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none transition focus:border-primary"
                         />
                       </div>
 
@@ -1147,7 +1167,7 @@ export default function JobDetailsPage() {
                           applyMutation.isPending ||
                           resumeUploadMutation.isPending
                         }
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {applyMutation.isPending && (
                           <Loader2 className="h-4 w-4 animate-spin" />

@@ -5,106 +5,53 @@ import Container from "@/components/layout/Container";
 import { Star } from "lucide-react";
 
 const testimonials = [
-  {
-    name: "Sarah Johnson",
-    role: "Software Engineer",
-    company: "Google",
-    review:
-      "JobFusion AI completely transformed my resume. I started getting interview calls within a week.",
-  },
-  {
-    name: "Michael Chen",
-    role: "Frontend Developer",
-    company: "Microsoft",
-    review:
-      "The ATS optimization alone is worth it. My resume score jumped from 58% to 96%.",
-  },
-  {
-    name: "Emily Davis",
-    role: "Product Designer",
-    company: "Adobe",
-    review:
-      "The AI interview coach gave me confidence before every interview. Highly recommended.",
-  },
-  {
-    name: "David Wilson",
-    role: "Backend Engineer",
-    company: "Amazon",
-    review:
-      "Beautiful UI, powerful AI, and everything is incredibly easy to use.",
-  },
-  {
-    name: "Sophia Brown",
-    role: "Data Analyst",
-    company: "Meta",
-    review:
-      "This is the best resume platform I've ever used. Everything feels premium.",
-  },
+  { name: "Sarah Johnson", role: "Software Engineer", company: "Google", review: "The resume rewrites were sharp, relevant, and immediately gave me more confidence in every application." },
+  { name: "Michael Chen", role: "Frontend Developer", company: "Microsoft", review: "I went from scattered job applications to a focused process with clear wins and measurable momentum." },
+  { name: "Emily Davis", role: "Product Designer", company: "Adobe", review: "The ATS feedback made the difference. It was the first time my resume actually reflected my value." },
+  { name: "David Wilson", role: "Backend Engineer", company: "Amazon", review: "The tool feels premium, but the real benefit is how much more targeted and efficient my search became." },
+  { name: "Sophia Brown", role: "Data Analyst", company: "Meta", review: "Everything from matching to tracking felt designed around real career decisions, not generic templates." },
 ];
 
 export default function Testimonials() {
   return (
-    <section
-      id="testimonials"
-      className="relative py-32 overflow-hidden"
-    >
+    <section id="testimonials" className="relative overflow-hidden py-24 sm:py-28 lg:py-32">
       <Container>
         <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex rounded-full border border-violet-500/20 bg-violet-500/10 px-5 py-2 text-sm text-violet-300">
-            Testimonials
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground shadow-xs">
+            Candidate Success
           </div>
-
-          <h2 className="mt-8 text-5xl font-black md:text-6xl">
-            Loved by
-            <span className="block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-              Professionals
-            </span>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+            Trusted by candidates focused on
+            <span className="mt-2 block text-muted-foreground">serious career growth.</span>
           </h2>
-
-          <p className="mt-6 text-lg text-white/60">
-            Thousands of professionals trust JobFusion AI to improve their
-            resumes and land better opportunities.
-          </p>
         </div>
 
-        <div className="relative mt-20 overflow-hidden">
+        <div className="relative mt-14 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
-            transition={{
-              repeat: Infinity,
-              duration: 35,
-              ease: "linear",
-            }}
-            className="flex gap-6"
+            transition={{ repeat: Infinity, duration: 32, ease: "linear" }}
+            className="flex gap-5"
           >
             {[...testimonials, ...testimonials].map((item, index) => (
-              <div
+              <article
                 key={index}
-                className="min-w-[360px] rounded-[32px] border border-white/10 bg-white/5 p-8 backdrop-blur-xl"
+                className="min-w-[320px] rounded-2xl border border-border bg-card p-6 shadow-sm transition hover:shadow-md sm:min-w-[360px]"
               >
-                <div className="mb-5 flex gap-1">
+                <div className="flex gap-1 text-amber-500">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                    />
+                    <Star key={i} className="h-4 w-4 fill-current" />
                   ))}
                 </div>
-
-                <p className="leading-8 text-white/70">
-                  "{item.review}"
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  “{item.review}”
                 </p>
-
-                <div className="mt-8">
-                  <h3 className="font-bold text-lg">
-                    {item.name}
-                  </h3>
-
-                  <p className="text-sm text-white/50">
+                <div className="mt-6 border-t border-border pt-4">
+                  <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {item.role} • {item.company}
                   </p>
                 </div>
-              </div>
+              </article>
             ))}
           </motion.div>
         </div>

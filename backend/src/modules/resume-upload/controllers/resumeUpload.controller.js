@@ -32,7 +32,7 @@ class ResumeUploadController {
 
   getUpload = asyncHandler(async (req, res) => {
     const upload =
-      await resumeUploadService.getUploadById(req.params.id);
+      await resumeUploadService.getUploadById(req.params.id, req.user.id);
 
     res.status(200).json({
       success: true,
@@ -42,7 +42,7 @@ class ResumeUploadController {
 
   deleteUpload = asyncHandler(async (req, res) => {
     const result =
-      await resumeUploadService.deleteUpload(req.params.id);
+      await resumeUploadService.deleteUpload(req.params.id, req.user.id);
 
     res.status(200).json({
       success: true,

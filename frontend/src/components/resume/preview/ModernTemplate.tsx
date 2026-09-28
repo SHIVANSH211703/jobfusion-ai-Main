@@ -10,25 +10,25 @@ export default function ModernTemplate({
   resume,
 }: Props) {
   return (
-    <div className="bg-white text-black rounded-lg shadow-lg p-10 max-w-4xl mx-auto space-y-8">
+    <div className="w-full max-w-4xl mx-auto overflow-x-auto bg-white text-black rounded-xl sm:rounded-2xl shadow-lg p-5 sm:p-8 md:p-10 space-y-6 sm:space-y-8">
 
       {/* Header */}
 
       <div>
 
-        <h1 className="text-4xl font-bold">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
           {resume.personalInfo.fullName}
         </h1>
 
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-600 mt-2 break-all text-sm sm:text-base">
           {resume.personalInfo.email}
         </p>
 
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-sm sm:text-base">
           {resume.personalInfo.phone}
         </p>
 
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-sm sm:text-base">
           {resume.personalInfo.location}
         </p>
 

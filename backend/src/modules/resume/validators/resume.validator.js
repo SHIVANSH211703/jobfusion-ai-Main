@@ -67,6 +67,14 @@ const jobMatchValidation = [
     .withMessage("Job description must be at least 20 characters long."),
 ];
 
+const analyzeResumeValidation = [
+  body("jobDescription")
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ min: 20, max: 10000 })
+    .withMessage("Job description must be between 20 and 10000 characters."),
+];
+
 const coverLetterValidation = [
   body("jobDescription")
     .trim()
@@ -91,6 +99,7 @@ module.exports = {
   updateResumeValidation,
   resumeIdValidation,
   publicResumeValidation,
+  analyzeResumeValidation,
   jobMatchValidation,
    coverLetterValidation,
 };

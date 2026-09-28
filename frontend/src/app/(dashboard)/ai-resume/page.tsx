@@ -6,12 +6,16 @@ import { Sparkles, FileText, Wand2, Upload, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import ResumeList from "@/components/resume/ResumeList";
+import ATSAnalysis from "@/components/resume/ATSAnalysis";
+import ResumeTailoringReview from "@/components/resume/ResumeTailoringReview";
 import { useResumes } from "@/hooks/resume/useResumes";
 import { useATSAnalysis } from "@/hooks/resume/useATSAnalysis";
 import { useResumeImprove } from "@/hooks/resume/useResumeImprove";
 import { useJobMatch } from "@/hooks/resume/useJobMatch";
 import { useCoverLetter } from "@/hooks/resume/useCoverLetter";
 import { useResumeUpload } from "@/hooks/resume/useResumeUpload";
+import { useResumeTailor } from "@/hooks/resume/useResumeTailor";
+import { useUpdateResume } from "@/hooks/resume/useResumes";
 
 export default function Page() {
   const { data, isLoading } = useResumes();
@@ -20,6 +24,8 @@ export default function Page() {
   const matchMutation = useJobMatch();
   const coverLetterMutation = useCoverLetter();
   const uploadMutation = useResumeUpload();
+  const tailorMutation = useResumeTailor();
+  const updateResume = useUpdateResume();
 
   const resumes = data ?? [];
   const [selectedResumeId, setSelectedResumeId] = useState("");
@@ -49,23 +55,23 @@ export default function Page() {
   };
 
   return (
-    <div className="space-y-8 p-1 md:p-2">
-      <div className="flex flex-col gap-4 rounded-2xl border bg-card p-6 shadow-sm md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/10 text-violet-600">
-            <Sparkles className="h-6 w-6" />
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col gap-4 rounded-2xl border bg-card p-4.5 sm:p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">AI Resume Workspace</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">AI Resume Workspace</h1>
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
               Build, optimize, and tailor your resumes with AI-powered actions.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
+        <div className="flex flex-col xs:flex-row gap-2 w-full md:w-auto">
+          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted w-full xs:w-auto">
             <Upload className="h-4 w-4" />
             {uploadMutation.isPending ? "Uploading..." : "Upload Resume"}
             <input
@@ -77,8 +83,8 @@ export default function Page() {
             />
           </label>
 
-          <Link href="/resume/create">
-            <Button className="gap-2">
+          <Link href="/resume/create" className="w-full xs:w-auto">
+            <Button className="gap-2 w-full xs:w-auto justify-center">
               <Wand2 className="h-4 w-4" />
               Create Resume
             </Button>
@@ -99,7 +105,7 @@ export default function Page() {
 
         <div className="rounded-2xl border bg-card p-4">
           <p className="text-sm text-muted-foreground">Quick action</p>
-          <p className="mt-3 flex items-center gap-2 text-lg font-semibold text-violet-600">
+          <p className="mt-3 flex items-center gap-2 text-lg font-semibold text-accent">
             <FileText className="h-4 w-4" />
             Resume optimization
           </p>
@@ -149,7 +155,7 @@ export default function Page() {
                 </div>
 
                 <div className="flex flex-wrap content-start gap-2 rounded-xl border p-4">
-                  <Button disabled={analyzeMutation.isPending} onClick={() => runWithResume((id) => analyzeMutation.mutate(id))}>
+                  <Button disabled={analyzeMutation.isPending} onClick={() => runWithResume((id) => analyzeMutation.mutate({ id, jobDescription }))}>
                     {analyzeMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Analyze Resume
                   </Button>
@@ -176,6 +182,12 @@ export default function Page() {
               />
               <div className="flex flex-wrap gap-2">
                 <Button
+                  disabled={!selectedResumeId || jobDescription.trim().length < 20 || tailorMutation.isPending}
+                  onClick={() => tailorMutation.mutate({ resumeId: selectedResumeId, jobDescription: jobDescription.trim() })}
+                >
+                  {tailorMutation.isPending ? "Preparing..." : "Tailor Resume for This Job"}
+                </Button>
+                <Button
                   disabled={!selectedResumeId || !jobDescription.trim() || matchMutation.isPending}
                   onClick={() => matchMutation.mutate({ id: selectedResumeId, jobDescription })}
                 >
@@ -191,20 +203,36 @@ export default function Page() {
             </div>
 
             {analyzeMutation.data && (
-              <div className="rounded-xl border p-4">
-                <h3 className="font-semibold">ATS Analysis</h3>
-                <p className="mt-2 text-sm">{analyzeMutation.data.data.aiSummary}</p>
-                <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                  <div><h4 className="text-sm font-medium">Strengths</h4><ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">{analyzeMutation.data.data.strengths.map((item) => <li key={item}>{item}</li>)}</ul></div>
-                  <div><h4 className="text-sm font-medium">Weaknesses</h4><ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">{analyzeMutation.data.data.weaknesses.map((item) => <li key={item}>{item}</li>)}</ul></div>
-                  <div><h4 className="text-sm font-medium">Recommendations</h4><ul className="mt-2 list-disc pl-5 text-sm text-muted-foreground">{analyzeMutation.data.data.recommendations.map((item) => <li key={item}>{item}</li>)}</ul></div>
-                </div>
-              </div>
+              <ATSAnalysis analysis={analyzeMutation.data.data} />
+            )}
+
+            {selectedResume && tailorMutation.data && (
+              <ResumeTailoringReview
+                resume={selectedResume}
+                suggestions={tailorMutation.data.data}
+                isSaving={updateResume.isPending}
+                onApply={(payload) => updateResume.mutate({ id: selectedResumeId, payload })}
+              />
             )}
 
             {matchMutation.data && (
               <div className="rounded-xl border p-4">
                 <h3 className="font-semibold">Job Match: {matchMutation.data.data.matchScore}%</h3>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {Object.entries(matchMutation.data.data.categories).map(([category, score]) => (
+                    <div key={category}>
+                      <div className="mb-1 flex justify-between text-xs capitalize">
+                        <span className="text-muted-foreground">{category}</span>
+                        <span>{score === null ? "Not enough data" : `${score}%`}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                        {score !== null && <div className="h-full rounded-full bg-primary" style={{ width: `${score}%` }} />}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">Matched skills: {matchMutation.data.data.matchedSkills.join(", ") || "None identified"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Missing skills: {matchMutation.data.data.missingSkills.join(", ") || "None identified"}</p>
                 <p className="mt-2 text-sm text-muted-foreground">Matched keywords: {matchMutation.data.data.matchedKeywords.join(", ") || "None returned"}</p>
                 <p className="mt-1 text-sm text-muted-foreground">Missing keywords: {matchMutation.data.data.missingKeywords.join(", ") || "None returned"}</p>
               </div>

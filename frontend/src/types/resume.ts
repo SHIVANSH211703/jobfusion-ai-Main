@@ -67,6 +67,7 @@ export interface Resume {
 
   atsScore: number;
   aiSummary: string;
+  atsAnalysis?: ATSAnalysisResponse["data"];
 
   personalInfo: PersonalInfo;
 
@@ -106,11 +107,46 @@ export interface ATSAnalysisResponse {
   data: {
     score: number;
     aiSummary: string;
+    categories: {
+      keywords: number;
+      skills: number;
+      experience: number;
+      education: number;
+      formatting: number;
+      impact: number;
+    };
+    matchedKeywords: string[];
+    missingKeywords: string[];
+    jobSpecificRecommendations: string[];
+    weakSections: string[];
+    jobSpecific: boolean;
     strengths: string[];
     weaknesses: string[];
     recommendations: string[];
     analyzedAt: string;
   };
+}
+
+export interface ResumeVersion {
+  _id: string;
+  resumeId: string;
+  userId: string;
+  versionNumber: number;
+  source: "created" | "upload" | "manual" | "ai_improvement" | "checkpoint" | "restore";
+  content?: Partial<Resume>;
+  changes: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResumeVersionsResponse {
+  success: boolean;
+  data: ResumeVersion[];
+}
+
+export interface ResumeVersionResponse {
+  success: boolean;
+  data: ResumeVersion;
 }
 
 export interface ImproveResumeResponse {
@@ -120,11 +156,46 @@ export interface ImproveResumeResponse {
   changes: string[];
 }
 
+export interface ResumeTailoringResponse {
+  success: boolean;
+  message: string;
+  data: {
+    summary: string;
+    experience: Array<{ index: number; description: string }>;
+    projects: Array<{ index: number; description: string }>;
+    achievements: Array<{ index: number; description: string }>;
+    changes: string[];
+  };
+}
+
+export interface CareerGapResponse {
+  success: boolean;
+  data: {
+    targetRole: string;
+    evidenceJobCount: number;
+    strongSkills: string[];
+    skillsToImprove: string[];
+    missingSkills: string[];
+    experienceGaps: string[];
+    learningTopics: string[];
+    roadmap: Array<{ focus: string; reason: string; relatedGap: string }>;
+  };
+}
+
 export interface JobMatchResponse {
   success: boolean;
   message: string;
   data: {
     matchScore: number;
+    categories: {
+      skills: number;
+      experience: number;
+      education: number;
+      keywords: number;
+      location: number | null;
+    };
+    matchedSkills: string[];
+    missingSkills: string[];
     matchedKeywords: string[];
     missingKeywords: string[];
     strengths: string[];

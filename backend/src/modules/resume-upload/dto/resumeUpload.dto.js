@@ -14,8 +14,6 @@ class ResumeUploadDTO {
 
       parsingStatus: upload.parsingStatus,
 
-      extractedText: upload.extractedText,
-
       metadata: upload.metadata,
 
       resume: upload.resume

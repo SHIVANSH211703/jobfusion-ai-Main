@@ -19,30 +19,23 @@ export default function ResumePage() {
   }
 
   return (
-    <div className="space-y-8 p-8">
-
-      <div className="flex items-center justify-between">
-
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             My Resumes
           </h1>
 
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm">
             Create and manage your resumes.
           </p>
-
         </div>
 
-        <Link href="/resume/create">
-
-          <Button>
+        <Link href="/resume/create" className="w-full sm:w-auto">
+          <Button className="w-full sm:w-auto">
             Create Resume
           </Button>
-
         </Link>
-
       </div>
 
       <ResumeList

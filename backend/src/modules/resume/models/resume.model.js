@@ -281,6 +281,40 @@ aiSummary: {
 },
 
 atsAnalysis: {
+  categories: {
+    keywords: { type: Number, min: 0, max: 100, default: null },
+    skills: { type: Number, min: 0, max: 100, default: null },
+    experience: { type: Number, min: 0, max: 100, default: null },
+    education: { type: Number, min: 0, max: 100, default: null },
+    formatting: { type: Number, min: 0, max: 100, default: null },
+    impact: { type: Number, min: 0, max: 100, default: null },
+  },
+
+  matchedKeywords: {
+    type: [String],
+    default: [],
+  },
+
+  missingKeywords: {
+    type: [String],
+    default: [],
+  },
+
+  jobSpecificRecommendations: {
+    type: [String],
+    default: [],
+  },
+
+  weakSections: {
+    type: [String],
+    default: [],
+  },
+
+  jobSpecific: {
+    type: Boolean,
+    default: false,
+  },
+
   strengths: {
     type: [String],
     default: [],

@@ -1,4 +1,5 @@
 const dashboardService = require("../services/dashboard.service");
+const analyticsService = require("../services/analytics.service");
 const asyncHandler = require("../../../utils/asyncHandler");
 
 const getDashboard = asyncHandler(async (req, res) => {
@@ -20,6 +21,16 @@ const getDashboard = asyncHandler(async (req, res) => {
   });
 });
 
+const getAnalytics = asyncHandler(async (req, res) => {
+  const data = await analyticsService.getAnalytics(req.user.id);
+  res.status(200).json({
+    success: true,
+    message: "Application analytics retrieved successfully",
+    data,
+  });
+});
+
 module.exports = {
   getDashboard,
+  getAnalytics,
 };

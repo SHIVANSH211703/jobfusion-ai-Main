@@ -3,6 +3,7 @@ const Resume = require("../../resume/models/resume.model");
 const Application = require("../../jobs/models/application.model");
 const SavedJob = require("../../jobs/models/savedJob.model");
 const Job = require("../../jobs/models/job.model");
+const Interview = require("../../interviews/models/interview.model");
 
 const calculateProfileCompletion = (user) => {
   if (!user) {
@@ -90,17 +91,7 @@ const sanitizeSavedJob = (savedJob) => {
 };
 
 const getDashboard = async (userId) => {
-  const [
-    user,
-    applicationsCount,
-    savedJobsCount,
-    interviewsCount,
-    resumesCount,
-    latestResume,
-    recentApplications,
-    savedJobs,
-    recommendedJobs,
-  ] = await Promise.all([
+  const settledResults = await Promise.allSettled([
     User.findById(userId).lean(),
     Application.countDocuments({ userId }),
     SavedJob.countDocuments({ userId }),
@@ -121,7 +112,29 @@ const getDashboard = async (userId) => {
       .sort({ postedAt: -1, createdAt: -1 })
       .limit(3)
       .lean(),
+    Interview.find({
+      userId,
+      status: "scheduled",
+      scheduledAt: { $gte: new Date() },
+    })
+      .populate({ path: "applicationId", populate: { path: "jobId", select: "title company" } })
+      .sort({ scheduledAt: 1 })
+      .limit(5)
+      .lean(),
   ]);
+
+  const getVal = (res, fallback) => (res.status === "fulfilled" ? res.value : fallback);
+
+  const user = getVal(settledResults[0], null);
+  const applicationsCount = getVal(settledResults[1], 0);
+  const savedJobsCount = getVal(settledResults[2], 0);
+  const interviewsCount = getVal(settledResults[3], 0);
+  const resumesCount = getVal(settledResults[4], 0);
+  const latestResume = getVal(settledResults[5], null);
+  const recentApplications = getVal(settledResults[6], []);
+  const savedJobs = getVal(settledResults[7], []);
+  const recommendedJobs = getVal(settledResults[8], []);
+  const upcomingInterviews = getVal(settledResults[9], []);
 
   const profileCompletion = calculateProfileCompletion(user);
 
@@ -138,6 +151,20 @@ const getDashboard = async (userId) => {
     recentApplications: recentApplications
       .map(sanitizeApplication)
       .filter(Boolean),
+    upcomingInterviews: upcomingInterviews.map((interview) => ({
+      _id: interview._id,
+      applicationId: interview.applicationId?._id ?? null,
+      scheduledAt: interview.scheduledAt,
+      round: interview.round,
+      type: interview.type,
+      status: interview.status,
+      job: interview.applicationId?.jobId
+        ? {
+            title: interview.applicationId.jobId.title,
+            company: interview.applicationId.jobId.company,
+          }
+        : null,
+    })),
     savedJobs: savedJobs
       .map(sanitizeSavedJob)
       .filter(Boolean),

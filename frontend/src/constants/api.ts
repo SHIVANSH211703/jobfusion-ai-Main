@@ -26,6 +26,21 @@ export const API = {
 
   DASHBOARD: {
     GET: "/dashboard",
+    ANALYTICS: "/dashboard/analytics",
+  },
+
+  INTERVIEWS: {
+    GET_ALL: "/interviews",
+    CREATE: "/interviews",
+    PREPARE: "/interviews/preparation",
+    UPDATE: (id: string) => `/interviews/${id}`,
+    DELETE: (id: string) => `/interviews/${id}`,
+  },
+
+  NOTIFICATIONS: {
+    GET_ALL: "/notifications",
+    READ_ALL: "/notifications/read-all",
+    READ: (id: string) => `/notifications/${id}/read`,
   },
 
   RESUME: {
@@ -39,13 +54,20 @@ export const API = {
 
     ANALYZE: (id: string) => `/resume/${id}/analyze`,
     IMPROVE: (id: string) => `/resume/${id}/improve`,
+    TAILOR: (id: string) => `/resume/${id}/tailor`,
+    CAREER_GAP: (id: string) => `/resume/${id}/career-gap`,
     JOB_MATCH: (id: string) => `/resume/${id}/job-match`,
     COVER_LETTER: (id: string) => `/resume/${id}/cover-letter`,
+    VERSIONS: (id: string) => `/resume/${id}/versions`,
+    VERSION: (id: string, versionId: string) => `/resume/${id}/versions/${versionId}`,
+    RESTORE_VERSION: (id: string, versionId: string) => `/resume/${id}/versions/${versionId}/restore`,
   },
 
   JOBS: {
     GET_ALL: "/jobs",
     SEARCH: "/jobs/search",
+    SAVED_SEARCHES: "/jobs/saved-searches",
+    SAVED_SEARCH: (id: string) => `/jobs/saved-searches/${id}`,
 
     GET_BY_ID: (id: string) => `/jobs/${id}`,
 

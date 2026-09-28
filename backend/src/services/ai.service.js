@@ -1,10 +1,17 @@
 const axios = require("axios");
+const { parseResumeAnalysis } = require("../modules/resume/validators/resumeAnalysis.schema");
+const { parseResumeTailoring } = require("../modules/resume/validators/resumeTailoring.schema");
+const { parseJobMatch } = require("../modules/jobs/validators/jobMatch.schema");
+const { parseInterviewPrep } = require("../modules/interviews/validators/interviewPrep.schema");
+const { parseCareerGap } = require("../modules/resume/validators/careerGap.schema");
+const { parseResumeImprovement } = require("../modules/resume/validators/resumeImprovement.schema");
 
 class AIService {
   constructor() {
     this.apiKey = process.env.OPENROUTER_API_KEY;
     this.baseURL = "https://openrouter.ai/api/v1/chat/completions";
     this.model = "meta-llama/llama-3.3-70b-instruct";
+    this.client = axios.create({ timeout: 45000 });
   }
 
   async parseResume(resumeText) {
@@ -51,7 +58,7 @@ ${resumeText}
 `;
 
     try {
-      const response = await axios.post(
+      const response = await this.client.post(
         this.baseURL,
         {
           model: this.model,
@@ -80,10 +87,6 @@ ${resumeText}
 
       const content = response.data.choices[0].message.content;
 
-      console.log("\n========== RAW AI RESPONSE ==========");
-      console.log(content);
-      console.log("=====================================\n");
-
       const cleanedContent = content
         .replace(/```json/gi, "")
         .replace(/```/g, "")
@@ -91,124 +94,325 @@ ${resumeText}
 
       return JSON.parse(cleanedContent);
     } catch (error) {
-      console.error("\n========== AI ERROR ==========");
-      console.error("Status:", error.response?.status);
-      console.error("Data:", error.response?.data);
-      console.error("Message:", error.message);
-      console.error("==============================\n");
+      console.error("Resume parsing provider request failed", {
+        status: error.response?.status,
+        code: error.code,
+      });
 
       throw error;
     }
   }
 
-  async analyzeResume(resumeData) {
-  const prompt = `
-You are a Senior ATS Resume Reviewer with 15+ years of experience helping candidates pass ATS systems such as Greenhouse, Lever, Workday, Taleo, iCIMS, and SuccessFactors.
+  async analyzeResume(resumeData, jobDescription) {
+    if (!this.apiKey) {
+      const error = new Error("Resume analysis is not configured.");
+      error.statusCode = 503;
+      throw error;
+    }
 
-Your job is to evaluate the resume exactly like an ATS and an experienced recruiter.
+    const normalizedJobDescription = jobDescription?.trim() || "";
+    const jobContextRules = normalizedJobDescription
+      ? `Compare the resume with this job description. Populate matchedKeywords, missingKeywords, and jobSpecificRecommendations using only the supplied resume and job description.\n\nJob description:\n${normalizedJobDescription}`
+      : "No target job was provided. Return empty arrays for matchedKeywords, missingKeywords, and jobSpecificRecommendations. Do not make job-specific claims.";
 
-Evaluate the following areas:
+    const prompt = `
+Evaluate the supplied resume for ATS readiness. Use only evidence present in the resume. Do not invent skills, experience, credentials, or outcomes.
 
-1. ATS Compatibility
-2. Resume Structure
-3. Professional Summary
-4. Technical Skills
-5. Work Experience
-6. Projects
-7. Education
-8. Certifications
-9. Achievements
-10. Keywords
-11. Readability
-12. Overall Recruiter Impression
+Give one overall score and separate 0-100 scores for keyword coverage, skills, experience, education, formatting, and impact. If the resume does not provide evidence for a category, score only what is present and explain the limitation in weaknesses; do not invent facts.
 
-Scoring Guidelines:
-
-90-100 = Excellent
-80-89 = Very Good
-70-79 = Good
-60-69 = Needs Improvement
-Below 60 = Poor
+${jobContextRules}
 
 Resume:
-
 ${JSON.stringify(resumeData, null, 2)}
 
-Return ONLY valid JSON.
-
+Return only valid JSON with this shape:
 {
   "score": 0,
   "aiSummary": "",
+  "categories": {
+    "keywords": 0,
+    "skills": 0,
+    "experience": 0,
+    "education": 0,
+    "formatting": 0,
+    "impact": 0
+  },
+  "matchedKeywords": [],
+  "missingKeywords": [],
+  "jobSpecificRecommendations": [],
+  "weakSections": [],
   "strengths": [],
   "weaknesses": [],
   "recommendations": []
 }
 
-Rules:
-
-- Return ONLY JSON.
-- Do not use markdown.
-- Do not use code blocks.
-- Score must be between 0 and 100.
-- aiSummary must be 3-5 professional sentences.
-- strengths must contain exactly 5 points.
-- weaknesses must contain exactly 5 points.
-- recommendations must contain exactly 5 actionable improvements.
-- Never mention missing information if the resume already contains it.
-- Base every suggestion strictly on the provided resume.
-- Do not invent missing fields.
+All scores must be numbers from 0 to 100. Arrays must contain concise strings. Recommendations must be actionable and supported by the source content. The summary should be 3-5 sentences. Do not use markdown or add text outside the JSON object.
 `;
 
-  try {
-    const response = await axios.post(
-      this.baseURL,
-      {
-        model: this.model,
-        temperature: 0.2,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are an expert ATS Resume Reviewer. Return ONLY valid JSON. Never use markdown or explanations.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
-          "X-Title": "JobFusion AI",
+    try {
+      const response = await this.client.post(
+        this.baseURL,
+        {
+          model: this.model,
+          temperature: 0.2,
+          messages: [
+            {
+              role: "system",
+              content: "Return an evidence-based resume analysis as valid JSON only.",
+            },
+            { role: "user", content: prompt },
+          ],
         },
+        {
+          timeout: 45000,
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "JobFusion AI",
+          },
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (typeof content !== "string" || !content.trim()) {
+        const error = new Error("AI provider returned an empty analysis.");
+        error.statusCode = 502;
+        throw error;
       }
-    );
 
-    const content = response.data.choices[0].message.content;
+      const cleanedContent = content
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
 
-    console.log("\n========== ATS AI RESPONSE ==========");
-    console.log(content);
-    console.log("=====================================\n");
+      return parseResumeAnalysis(JSON.parse(cleanedContent));
+    } catch (error) {
+      console.error("Resume analysis provider request failed", {
+        status: error.response?.status,
+        code: error.code,
+      });
 
-    const cleanedContent = content
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
-      .trim();
+      if (error.statusCode) {
+        throw error;
+      }
 
-    return JSON.parse(cleanedContent);
-  } catch (error) {
-    console.error("\n========== ATS AI ERROR ==========");
-    console.error("Status:", error.response?.status);
-    console.error("Data:", error.response?.data);
-    console.error("Message:", error.message);
-    console.error("==================================\n");
-
-    throw error;
+      const providerError = new Error(
+        error.code === "ECONNABORTED"
+          ? "Resume analysis timed out. Please try again."
+          : "Unable to analyze this resume right now. Please try again."
+      );
+      providerError.statusCode = error.response?.status === 429 ? 429 : 502;
+      throw providerError;
+    }
   }
+
+  async tailorResume(resumeData, jobDescription) {
+    if (!this.apiKey) {
+      const error = new Error("Resume tailoring is not configured.");
+      error.statusCode = 503;
+      throw error;
+    }
+
+    const prompt = `
+Suggest wording improvements for this resume against the supplied job description.
+Do not invent skills, responsibilities, metrics, companies, projects, awards, education, or credentials. Preserve all names, dates, technologies, and factual claims. Only return rewritten summary and descriptions for the existing experience, projects, and achievements at their original indexes. If source text has no factual detail, return it unchanged.
+
+Resume:
+${JSON.stringify(resumeData, null, 2)}
+
+Job description:
+${jobDescription}
+
+Return JSON only in this shape:
+{
+  "summary": "",
+  "experience": [{ "index": 0, "description": "" }],
+  "projects": [{ "index": 0, "description": "" }],
+  "achievements": [{ "index": 0, "description": "" }],
+  "changes": []
 }
+
+Include exactly one indexed item for each source entry in the three arrays, in the same order. Use empty arrays when the source section is empty. Do not return any additional resume fields.
+`;
+
+    try {
+      const response = await this.client.post(
+        this.baseURL,
+        {
+          model: this.model,
+          temperature: 0.2,
+          messages: [
+            { role: "system", content: "Return only grounded resume wording suggestions as valid JSON." },
+            { role: "user", content: prompt },
+          ],
+        },
+        {
+          timeout: 45000,
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "JobFusion AI",
+          },
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (typeof content !== "string" || !content.trim()) {
+        const error = new Error("AI provider returned empty tailoring suggestions.");
+        error.statusCode = 502;
+        throw error;
+      }
+      const cleanedContent = content.replace(/```json/gi, "").replace(/```/g, "").trim();
+      return parseResumeTailoring(JSON.parse(cleanedContent), resumeData);
+    } catch (error) {
+      console.error("Resume tailoring provider request failed", {
+        status: error.response?.status,
+        code: error.code,
+      });
+      if (error.statusCode) throw error;
+      const providerError = new Error(
+        error.code === "ECONNABORTED"
+          ? "Resume tailoring timed out. Please try again."
+          : "Unable to tailor this resume right now. Please try again."
+      );
+      providerError.statusCode = error.response?.status === 429 ? 429 : 502;
+      throw providerError;
+    }
+  }
+
+  async prepareForInterview({ job, resume }) {
+    if (!this.apiKey) {
+      const error = new Error("Interview preparation is not configured.");
+      error.statusCode = 503;
+      throw error;
+    }
+
+    const prompt = `
+Create interview preparation questions based specifically on this job and the candidate's applied resume. Do not assume skills or experience that are not explicitly present. Questions must be relevant to the role and evidence. Provide fewer questions rather than generic filler when context is limited.
+
+Job:
+${JSON.stringify({ title: job.title, company: job.company, description: job.description, skills: job.skills }, null, 2)}
+
+Applied resume:
+${JSON.stringify({ summary: resume.summary, skills: resume.skills, experience: resume.experience, projects: resume.projects, education: resume.education }, null, 2)}
+
+Return only JSON with these arrays: technicalQuestions, behavioralQuestions, resumeQuestions, jobSpecificQuestions. Each item must have "question" and "context" strings. Context must cite the supplied resume/job detail that makes the question relevant. Do not include answers or invent a requirement.
+`;
+
+    try {
+      const response = await this.client.post(
+        this.baseURL,
+        {
+          model: this.model,
+          temperature: 0.4,
+          messages: [
+            { role: "system", content: "Generate grounded interview preparation as valid JSON only." },
+            { role: "user", content: prompt },
+          ],
+        },
+        {
+          timeout: 45000,
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "JobFusion AI",
+          },
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (typeof content !== "string" || !content.trim()) {
+        const error = new Error("AI provider returned empty interview preparation.");
+        error.statusCode = 502;
+        throw error;
+      }
+      const cleanedContent = content.replace(/```json/gi, "").replace(/```/g, "").trim();
+      return parseInterviewPrep(JSON.parse(cleanedContent));
+    } catch (error) {
+      console.error("Interview preparation provider request failed", {
+        status: error.response?.status,
+        code: error.code,
+      });
+      if (error.statusCode) throw error;
+      const providerError = new Error(
+        error.code === "ECONNABORTED"
+          ? "Interview preparation timed out. Please try again."
+          : "Unable to prepare interview questions right now. Please try again."
+      );
+      providerError.statusCode = error.response?.status === 429 ? 429 : 502;
+      throw providerError;
+    }
+  }
+
+  async analyzeCareerGap({ targetRole, profile, resume, jobEvidence }) {
+    if (!this.apiKey) {
+      const error = new Error("Career analysis is not configured.");
+      error.statusCode = 503;
+      throw error;
+    }
+
+    const evidenceText = JSON.stringify({ profile, resume });
+    const prompt = `
+Compare this user's actual profile and resume with the selected target role and supplied stored job requirements. Do not infer a missing skill if it is already present in the profile or resume. Only report skill gaps supported by the supplied job requirements. When no stored job requirements are supplied, leave missingSkills empty and make the limited evidence clear in experienceGaps.
+
+Target role: ${targetRole}
+Profile and resume:
+${evidenceText}
+
+Stored job requirements:
+${JSON.stringify(jobEvidence, null, 2)}
+
+Return only JSON with arrays: strongSkills, skillsToImprove, missingSkills, experienceGaps, learningTopics, roadmap. Each roadmap item must contain focus, reason, relatedGap. Do not fabricate credentials, employment, or completed learning.
+`;
+
+    try {
+      const response = await this.client.post(
+        this.baseURL,
+        {
+          model: this.model,
+          temperature: 0.2,
+          messages: [
+            { role: "system", content: "Return only evidence-based career gap analysis as valid JSON." },
+            { role: "user", content: prompt },
+          ],
+        },
+        {
+          timeout: 45000,
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:3000",
+            "X-Title": "JobFusion AI",
+          },
+        }
+      );
+
+      const content = response.data?.choices?.[0]?.message?.content;
+      if (typeof content !== "string" || !content.trim()) {
+        const error = new Error("AI provider returned empty career analysis.");
+        error.statusCode = 502;
+        throw error;
+      }
+      const cleanedContent = content.replace(/```json/gi, "").replace(/```/g, "").trim();
+      return parseCareerGap(JSON.parse(cleanedContent), evidenceText);
+    } catch (error) {
+      console.error("Career analysis provider request failed", {
+        status: error.response?.status,
+        code: error.code,
+      });
+      if (error.statusCode) throw error;
+      const providerError = new Error(
+        error.code === "ECONNABORTED"
+          ? "Career analysis timed out. Please try again."
+          : "Unable to analyze career gaps right now. Please try again."
+      );
+      providerError.statusCode = error.response?.status === 429 ? 429 : 502;
+      throw providerError;
+    }
+  }
 
 async improveResume(resumeData) {
   const prompt = `
@@ -262,7 +466,7 @@ Return ONLY JSON.
 `;
 
   try {
-    const response = await axios.post(
+    const response = await this.client.post(
       this.baseURL,
       {
         model: this.model,
@@ -291,16 +495,17 @@ Return ONLY JSON.
 
     const content = response.data.choices[0].message.content;
 
-    console.log(content);
-
     const cleaned = content
       .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
 
-    return JSON.parse(cleaned);
+    return parseResumeImprovement(JSON.parse(cleaned), resumeData);
   } catch (error) {
-    console.error(error.response?.data || error.message);
+    console.error("Resume improvement provider request failed", {
+      status: error.response?.status,
+      code: error.code,
+    });
     throw error;
   }
 }
@@ -320,6 +525,9 @@ Rules:
 - Do NOT penalize the resume for information that is not required by the job description.
 - Return ONLY valid JSON.
 - Match score must be between 0 and 100.
+- Provide separate 0-100 scores for skills, experience, education, and keywords.
+- Set location score to null when either side has no usable location data.
+- List matchedSkills and missingSkills using only explicit job requirements and resume evidence.
 - Recommendations should be actionable.
 - Extract keywords intelligently.
 
@@ -333,6 +541,15 @@ Return ONLY this JSON format:
 
 {
   "matchScore": 0,
+  "categories": {
+    "skills": 0,
+    "experience": 0,
+    "education": 0,
+    "keywords": 0,
+    "location": null
+  },
+  "matchedSkills": [],
+  "missingSkills": [],
   "matchedKeywords": [],
   "missingKeywords": [],
   "strengths": [],
@@ -348,7 +565,7 @@ Return ONLY this JSON format:
       );
     }
 
-    const response = await axios.post(
+    const response = await this.client.post(
       this.baseURL,
       {
         model: this.model,
@@ -368,6 +585,7 @@ Return ONLY this JSON format:
         temperature: 0.3,
       },
       {
+        timeout: 45000,
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
@@ -386,57 +604,26 @@ Return ONLY this JSON format:
       );
     }
 
-    console.log(
-      "\n========== JOB MATCH AI RESPONSE =========="
-    );
-
-    console.log(content);
-
-    console.log(
-      "============================================\n"
-    );
-
     const cleanedContent = content
       .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
 
     try {
-      return JSON.parse(cleanedContent);
+      return parseJobMatch(JSON.parse(cleanedContent));
     } catch (parseError) {
-      console.error(
-        "AI returned invalid JSON:"
-      );
-
-      console.error(cleanedContent);
-
+      if (parseError.statusCode) {
+        throw parseError;
+      }
       throw new Error(
-        "AI returned invalid JSON"
+        "AI provider returned an invalid job match analysis."
       );
     }
   } catch (error) {
-    console.error(
-      "\n========== JOB MATCH AI ERROR =========="
-    );
-
-    console.error(
-      "Status:",
-      error.response?.status
-    );
-
-    console.error(
-      "Response:",
-      error.response?.data
-    );
-
-    console.error(
-      "Message:",
-      error.message
-    );
-
-    console.error(
-      "========================================\n"
-    );
+    console.error("Job match provider request failed", {
+      status: error.response?.status,
+      code: error.code,
+    });
 
     throw error;
   }
@@ -482,7 +669,7 @@ Return ONLY this JSON:
 `;
 
   try {
-    const response = await axios.post(
+    const response = await this.client.post(
       this.baseURL,
       {
         model: this.model,
@@ -511,10 +698,6 @@ Return ONLY this JSON:
 
     let content = response.data.choices[0].message.content.trim();
 
-    console.log("\n========== COVER LETTER AI RESPONSE ==========");
-    console.log(content);
-    console.log("==============================================\n");
-
     content = content
       .replace(/```json/gi, "")
       .replace(/```/g, "")
@@ -522,11 +705,10 @@ Return ONLY this JSON:
 
     return JSON.parse(content);
   } catch (error) {
-    console.error("\n========== COVER LETTER AI ERROR ==========");
-    console.error("Status:", error.response?.status);
-    console.error("Data:", error.response?.data);
-    console.error("Message:", error.message);
-    console.error("===========================================\n");
+    console.error("Cover letter provider request failed", {
+      status: error.response?.status,
+      code: error.code,
+    });
 
     throw new Error("Failed to generate cover letter.");
   }

@@ -81,6 +81,12 @@ class ResumeRepository {
         atsScore: analysis.score,
         aiSummary: analysis.aiSummary,
         atsAnalysis: {
+            categories: analysis.categories,
+            matchedKeywords: analysis.matchedKeywords,
+            missingKeywords: analysis.missingKeywords,
+            jobSpecificRecommendations: analysis.jobSpecificRecommendations,
+            weakSections: analysis.weakSections,
+            jobSpecific: analysis.jobSpecific,
           strengths: analysis.strengths || [],
           weaknesses: analysis.weaknesses || [],
           recommendations: analysis.recommendations || [],

@@ -6,33 +6,17 @@ const createApplication = async (
   resumeId,
   notes
 ) => {
-  return Application.findOneAndUpdate(
-    {
-      userId,
-      jobId,
-    },
-    {
-      $set: {
-        resumeId,
-        ...(notes !== undefined
-          ? { notes }
-          : {}),
-      },
-
-      $setOnInsert: {
-        userId,
-        jobId,
-        status: "applied",
-        appliedAt: new Date(),
-      },
-    },
-    {
-      new: true,
-      upsert: true,
-    }
-  )
+  return Application.create({
+    userId,
+    jobId,
+    resumeId,
+    status: "applied",
+    statusHistory: [{ status: "applied", changedAt: new Date() }],
+    appliedAt: new Date(),
+    notes: notes || "",
+  }).then((application) => application
     .populate("jobId")
-    .populate("resumeId");
+    .then((populatedApplication) => populatedApplication.populate("resumeId")));
 };
 
 const getApplication = async (
@@ -40,9 +24,16 @@ const getApplication = async (
   jobId
 ) => {
   return Application.findOne({
-    userId,
-    jobId,
+      userId,
+      jobId,
   }).lean();
+};
+
+const findOwnedApplication = async (userId, applicationId) => {
+  return Application.findOne({ _id: applicationId, userId })
+    .populate("jobId")
+    .populate("resumeId")
+    .lean();
 };
 
 const updateApplicationStatus = async (
@@ -51,23 +42,36 @@ const updateApplicationStatus = async (
   status,
   notes
 ) => {
+  const existingApplication = await Application.findOne({ userId, jobId });
+  if (!existingApplication) return null;
+
+  const update = {
+    $set: {
+      status,
+      ...(notes !== undefined ? { notes } : {}),
+    },
+  };
+
+  if (existingApplication.status !== status) {
+    update.$push = {
+      statusHistory: {
+        status,
+        changedAt: new Date(),
+        note: typeof notes === "string" ? notes.trim() : "",
+      },
+    };
+  }
+
   return Application.findOneAndUpdate(
     {
       userId,
       jobId,
     },
-    {
-      $set: {
-        status,
-        ...(notes !== undefined
-          ? { notes }
-          : {}),
-      },
-    },
+    update,
     {
       new: true,
     }
-  ).lean();
+  ).populate("jobId").populate("resumeId").lean();
 };
 
 const getApplications = async (
@@ -115,6 +119,7 @@ const getApplications = async (
 module.exports = {
   createApplication,
   getApplication,
+  findOwnedApplication,
   updateApplicationStatus,
   getApplications,
 };

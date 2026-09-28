@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import QueryProvider from "@/providers/QueryProvider";
 import AuthProvider from "@/providers/AuthProvider";
+import ThemeProvider from "@/providers/ThemeProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -22,21 +23,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className="antialiased"
-      >
-        <QueryProvider>
-          <AuthProvider>
-            {children}
+      <body className="min-h-screen bg-background text-foreground antialiased app-shell">
+        <ThemeProvider>
+          <QueryProvider>
+            <AuthProvider>
+              {children}
 
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-              }}
-            />
-          </AuthProvider>
-        </QueryProvider>
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 4000,
+                }}
+              />
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

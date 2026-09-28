@@ -14,6 +14,7 @@ class ResumeDTO {
 
       atsScore: resume.atsScore,
       aiSummary: resume.aiSummary,
+      atsAnalysis: resume.atsAnalysis,
 
       personalInfo: resume.personalInfo,
       summary: resume.summary,

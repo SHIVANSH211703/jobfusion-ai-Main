@@ -20,6 +20,7 @@ import {
 import { useJobs } from "@/hooks/jobs/useJobs";
 import { useSavedJobs } from "@/hooks/jobs/useSavedJobs";
 import { useSaveJob } from "@/hooks/jobs/useSaveJob";
+import { useCreateSavedSearch } from "@/hooks/jobs/useSavedSearches";
 
 import type { Job } from "@/types/job";
 
@@ -33,6 +34,15 @@ export default function JobsPage() {
 
   const [searchInput, setSearchInput] = useState("");
   const [locationInput, setLocationInput] = useState("");
+  const [remote, setRemote] = useState("");
+  const [jobType, setJobType] = useState("");
+  const [days, setDays] = useState("");
+  const [minSalary, setMinSalary] = useState("");
+  const [maxSalary, setMaxSalary] = useState("");
+  const [sort, setSort] = useState<"newest" | "salary_high" | "salary_low">("newest");
+  const [showSaveSearch, setShowSaveSearch] = useState(false);
+  const [savedSearchName, setSavedSearchName] = useState("");
+  const createSavedSearch = useCreateSavedSearch();
 
   const [page, setPage] = useState(1);
 
@@ -59,6 +69,12 @@ export default function JobsPage() {
     limit: JOBS_PER_PAGE,
     search: search || undefined,
     location: location || undefined,
+    remote: remote === "" ? undefined : remote === "true",
+    jobType: jobType || undefined,
+    days: days ? Number(days) : undefined,
+    minSalary: minSalary ? Number(minSalary) : undefined,
+    maxSalary: maxSalary ? Number(maxSalary) : undefined,
+    sort,
   });
 
   /*
@@ -150,6 +166,24 @@ export default function JobsPage() {
     setLocation("");
 
     setPage(1);
+  };
+
+  const handleSaveSearch = () => {
+    const name = savedSearchName.trim();
+    if (!name) return;
+    createSavedSearch.mutate({
+      name,
+      filters: {
+        search: search || undefined,
+        location: location || undefined,
+        remote: remote === "" ? undefined : remote === "true",
+        minSalary: minSalary ? Number(minSalary) : undefined,
+        maxSalary: maxSalary ? Number(maxSalary) : undefined,
+        jobType: jobType || undefined,
+        days: days ? Number(days) : undefined,
+        sort,
+      },
+    }, { onSuccess: () => { setShowSaveSearch(false); setSavedSearchName(""); } });
   };
 
   /*
@@ -361,8 +395,8 @@ export default function JobsPage() {
       {/* ========================================================= */}
 
       <div className="flex items-start gap-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-purple-500/15">
-          <BriefcaseBusiness className="h-5 w-5 text-purple-500" />
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <BriefcaseBusiness className="h-5 w-5 text-primary" />
         </div>
 
         <div>
@@ -419,7 +453,7 @@ export default function JobsPage() {
           <button
             type="button"
             onClick={handleSearch}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+            className="flex h-11 w-full lg:w-auto items-center justify-center gap-2 rounded-xl bg-primary px-7 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
           >
             <Search className="h-4 w-4" />
 
@@ -428,16 +462,44 @@ export default function JobsPage() {
         </div>
 
         {/* Filters row */}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">Workplace
+            <select value={remote} onChange={(event) => setRemote(event.target.value)} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+              <option value="">Any workplace</option><option value="true">Remote</option><option value="false">On-site</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">Job type
+            <select value={jobType} onChange={(event) => setJobType(event.target.value)} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+              <option value="">Any type</option><option value="full-time">Full time</option><option value="part-time">Part time</option><option value="contract">Contract</option><option value="internship">Internship</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">Posted within
+            <select value={days} onChange={(event) => setDays(event.target.value)} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+              <option value="">Any time</option><option value="1">24 hours</option><option value="7">7 days</option><option value="30">30 days</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">Minimum salary
+            <input type="number" min="0" value={minSalary} onChange={(event) => setMinSalary(event.target.value)} placeholder="No minimum" className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground" />
+          </label>
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">Maximum salary
+            <input type="number" min="0" value={maxSalary} onChange={(event) => setMaxSalary(event.target.value)} placeholder="No maximum" className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground" />
+          </label>
+          <label className="grid gap-1 text-xs font-medium text-muted-foreground">Sort by
+            <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground">
+              <option value="newest">Newest</option><option value="salary_high">Salary: high to low</option><option value="salary_low">Salary: low to high</option>
+            </select>
+          </label>
+        </div>
+
         <div className="mt-3 flex items-center gap-4">
+
           <button
             type="button"
-            className="flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium text-muted-foreground transition hover:bg-muted"
+            onClick={() => setShowSaveSearch((value) => !value)}
+            className="text-xs font-medium text-primary transition hover:underline"
           >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-
-            Filters
+            Save search
           </button>
-
           {(search || location) && (
             <button
               type="button"
@@ -448,6 +510,11 @@ export default function JobsPage() {
             </button>
           )}
         </div>
+
+        {showSaveSearch && <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <input value={savedSearchName} onChange={(event) => setSavedSearchName(event.target.value)} maxLength={80} placeholder="Name this search" className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-background px-3 text-sm" />
+          <button type="button" onClick={handleSaveSearch} disabled={!savedSearchName.trim() || createSavedSearch.isPending} className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">{createSavedSearch.isPending ? "Saving..." : "Save filters"}</button>
+        </div>}
       </div>
 
       {/* ========================================================= */}
@@ -537,17 +604,17 @@ export default function JobsPage() {
               return (
                 <div
                   key={job._id}
-                  className="group rounded-2xl border bg-card p-5 transition-all duration-200 hover:border-primary/30 hover:shadow-md"
+                  className="group rounded-2xl border bg-card p-4 sm:p-5 transition-all duration-200 hover:border-primary/30 hover:shadow-md"
                 >
-                  <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-center md:justify-between">
                     {/* ========================================= */}
                     {/* JOB CONTENT */}
                     {/* ========================================= */}
 
                     <div className="flex min-w-0 gap-4">
                       {/* Company Icon */}
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-500/10">
-                        <Building2 className="h-5 w-5 text-purple-500" />
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <Building2 className="h-5 w-5 text-primary" />
                       </div>
 
                       {/* Details */}
@@ -608,7 +675,7 @@ export default function JobsPage() {
                     {/* ACTIONS */}
                     {/* ========================================= */}
 
-                    <div className="flex shrink-0 items-center gap-3 md:flex-col md:items-stretch">
+                    <div className="grid grid-cols-2 gap-2.5 w-full sm:w-auto sm:flex sm:shrink-0 md:flex-col md:items-stretch">
                       {/* SAVE BUTTON */}
 
                       <button
@@ -624,10 +691,10 @@ export default function JobsPage() {
                           saveMutation.variables
                             ?.jobId === job._id
                         }
-                        className={`flex min-w-[110px] items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all ${
+                        className={`flex w-full sm:min-w-[110px] items-center justify-center gap-2 rounded-xl border px-3 sm:px-5 py-2.5 text-sm font-medium transition-all ${
                           isSaved
-                            ? "border-purple-500/40 bg-purple-500/15 text-purple-400 hover:bg-purple-500/25"
-                            : "border-border bg-background text-foreground hover:border-purple-500/40 hover:bg-purple-500/10"
+                            ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                            : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-primary/5"
                         }`}
                       >
                         {saveMutation.isPending &&
@@ -653,7 +720,7 @@ export default function JobsPage() {
 
                       <Link
                         href={`/jobs/${job._id}`}
-                        className="flex min-w-[110px] items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90"
+                        className="flex w-full sm:min-w-[110px] items-center justify-center rounded-xl sm:rounded-full bg-primary px-3 sm:px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 text-center"
                       >
                         View Details
                       </Link>

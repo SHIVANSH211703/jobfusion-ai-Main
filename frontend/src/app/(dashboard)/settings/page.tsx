@@ -64,16 +64,16 @@ export default function Page() {
   };
 
   return (
-    <div className="space-y-6 p-1 md:p-2">
-      <div className="rounded-2xl border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-600/10 text-violet-600">
-            <ShieldCheck className="h-6 w-6" />
+    <div className="space-y-6">
+      <div className="rounded-2xl border bg-card p-4.5 sm:p-6 shadow-sm">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
               Manage your account and security preferences.
             </p>
           </div>
@@ -81,15 +81,15 @@ export default function Page() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_1.4fr]">
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-2xl border bg-card p-4.5 sm:p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-600 font-semibold text-white">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground">
               {user?.name?.slice(0, 2).toUpperCase() || "JD"}
             </div>
 
-            <div>
-              <h2 className="text-lg font-semibold">{user?.name || "User"}</h2>
-              <p className="text-sm text-muted-foreground">{user?.email || "No email provided"}</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-semibold truncate">{user?.name || "User"}</h2>
+              <p className="text-sm text-muted-foreground break-all">{user?.email || "No email provided"}</p>
             </div>
           </div>
 
@@ -99,7 +99,7 @@ export default function Page() {
               <span className="font-medium">{user?.role || "Member"}</span>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border p-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 rounded-xl border p-3">
               <span className="text-muted-foreground">Email status</span>
               {user?.isEmailVerified ? (
                 <span className="font-medium text-emerald-600">Verified</span>
@@ -108,6 +108,7 @@ export default function Page() {
                   type="button"
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto text-xs"
                   disabled={verificationMutation.isPending}
                   onClick={() => verificationMutation.mutate()}
                 >
@@ -132,7 +133,7 @@ export default function Page() {
           </Button>
         </div>
 
-        <form onSubmit={handleChangePassword} className="rounded-2xl border bg-card p-6 shadow-sm">
+        <form onSubmit={handleChangePassword} className="rounded-2xl border bg-card p-4.5 sm:p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
               <Lock className="h-5 w-5" />

@@ -16,10 +16,23 @@ import {
 } from "lucide-react";
 
 import { useApplications } from "@/hooks/jobs/useApplications";
-import type { JobApplication } from "@/types/job";
+import { useUpdateApplicationStatus } from "@/hooks/jobs/useApplications";
+import type { ApplicationStatus, JobApplication } from "@/types/job";
+
+const applicationStatuses: ApplicationStatus[] = [
+  "applied",
+  "screening",
+  "interview",
+  "technical",
+  "hr",
+  "offer",
+  "rejected",
+  "withdrawn",
+];
 
 export default function ApplicationsPage() {
-  const [statusFilter, setStatusFilter] = useState<"all" | JobApplication["status"]>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all");
+  const updateStatus = useUpdateApplicationStatus();
   const {
     data,
     isLoading,
@@ -52,6 +65,9 @@ export default function ApplicationsPage() {
   const getStatusStyles = (status: string) => {
     switch (status) {
       case "interview":
+      case "screening":
+      case "technical":
+      case "hr":
         return "bg-blue-500/10 text-blue-600 border-blue-500/20";
 
       case "offer":
@@ -142,7 +158,7 @@ export default function ApplicationsPage() {
           </h2>
 
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            We couldn't fetch your applications.
+            We couldn&apos;t fetch your applications.
             Please try again.
           </p>
 
@@ -194,7 +210,7 @@ export default function ApplicationsPage() {
           </h2>
 
           <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-            You haven't applied to any jobs yet.
+            You haven&apos;t applied to any jobs yet.
             Start exploring jobs and apply to the
             opportunities that match your skills.
           </p>
@@ -316,7 +332,7 @@ export default function ApplicationsPage() {
       </div>
 
       <div className="flex flex-wrap gap-2" aria-label="Application status filters">
-        {(["all", "applied", "interview", "rejected", "offer"] as const).map((filter) => (
+        {(["all", ...applicationStatuses] as const).map((filter) => (
           <button
             key={filter}
             type="button"
@@ -366,13 +382,13 @@ export default function ApplicationsPage() {
                 application._id ||
                 `${job?._id}-${application.appliedAt}`
               }
-              className="rounded-2xl border bg-card p-5 transition hover:shadow-md"
+              className="rounded-2xl border bg-card p-4 sm:p-5 transition hover:shadow-md"
             >
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
                 {/* Job Information */}
-                <div className="min-w-0 space-y-3">
+                <div className="min-w-0 space-y-2.5 sm:space-y-3">
                   <div>
-                    <h2 className="truncate text-lg font-semibold">
+                    <h2 className="truncate text-base sm:text-lg font-semibold">
                       {job?.title ||
                         "Job Application"}
                     </h2>
@@ -388,7 +404,7 @@ export default function ApplicationsPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
                     {job?.location && (
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-4 w-4 shrink-0" />
@@ -415,7 +431,7 @@ export default function ApplicationsPage() {
                 </div>
 
                 {/* Status + Action */}
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                   <span
                     className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium capitalize ${getStatusStyles(
                       status
@@ -436,8 +452,38 @@ export default function ApplicationsPage() {
                       <ExternalLink className="h-4 w-4" />
                     </Link>
                   )}
+
+                  {job?._id && (
+                    <select
+                      aria-label={`Update status for ${job.title ?? "application"}`}
+                      value={status}
+                      disabled={updateStatus.isPending}
+                      onChange={(event) => updateStatus.mutate({
+                        jobId: job._id,
+                        status: event.target.value as ApplicationStatus,
+                        notes: application.notes,
+                      })}
+                      className="h-10 rounded-lg border border-border bg-background px-3 text-sm capitalize"
+                    >
+                      {applicationStatuses.map((value) => <option key={value} value={value}>{value}</option>)}
+                    </select>
+                  )}
                 </div>
               </div>
+
+              <ol className="mt-5 space-y-3 border-l border-border pl-4" aria-label="Application timeline">
+                {(application.statusHistory?.length
+                  ? application.statusHistory
+                  : [{ status: "applied" as const, changedAt: application.appliedAt }]
+                ).map((event, index) => (
+                  <li key={`${event.status}-${event.changedAt}-${index}`} className="relative text-sm">
+                    <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
+                    <span className="font-medium capitalize">{event.status}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{new Date(event.changedAt).toLocaleString()}</span>
+                    {event.note && <p className="mt-1 text-xs text-muted-foreground">{event.note}</p>}
+                  </li>
+                ))}
+              </ol>
 
               {/* Notes */}
               {application.notes && (

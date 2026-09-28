@@ -1,4 +1,25 @@
 const mongoose = require("mongoose");
+const { APPLICATION_STATUSES } = require("../applicationStatus");
+
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: APPLICATION_STATUSES,
+      required: true,
+    },
+    changedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    note: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+  },
+  { _id: false }
+);
 
 const applicationSchema = new mongoose.Schema(
   {
@@ -22,14 +43,13 @@ const applicationSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: [
-        "applied",
-        "interview",
-        "offer",
-        "rejected",
-        "withdrawn",
-      ],
+      enum: APPLICATION_STATUSES,
       default: "applied",
+    },
+
+    statusHistory: {
+      type: [statusHistorySchema],
+      default: [],
     },
 
     appliedAt: {

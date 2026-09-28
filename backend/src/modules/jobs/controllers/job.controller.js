@@ -25,6 +25,7 @@ const getJobs = asyncHandler(
       maxSalary,
       jobType = "",
       days,
+      sort = "newest",
     } = req.query;
 
     const result =
@@ -38,6 +39,7 @@ const getJobs = asyncHandler(
         maxSalary,
         jobType,
         days,
+        sort,
       });
 
     res.status(200).json({
@@ -401,6 +403,26 @@ const matchJob = asyncHandler(
   }
 );
 
+const getSavedSearches = asyncHandler(async (req, res) => {
+  const data = await jobService.getSavedSearches(getUserId(req));
+  res.status(200).json({ success: true, data });
+});
+
+const createSavedSearch = asyncHandler(async (req, res) => {
+  const data = await jobService.createSavedSearch(getUserId(req), req.body);
+  res.status(201).json({ success: true, data });
+});
+
+const updateSavedSearch = asyncHandler(async (req, res) => {
+  const data = await jobService.updateSavedSearch(getUserId(req), req.params.id, req.body);
+  res.status(200).json({ success: true, data });
+});
+
+const deleteSavedSearch = asyncHandler(async (req, res) => {
+  const result = await jobService.deleteSavedSearch(getUserId(req), req.params.id);
+  res.status(200).json({ success: true, message: result.message });
+});
+
 // ======================================================
 // EXPORT
 // ======================================================
@@ -417,4 +439,8 @@ module.exports = {
   getApplication,
   updateApplicationStatus,
   matchJob,
+  getSavedSearches,
+  createSavedSearch,
+  updateSavedSearch,
+  deleteSavedSearch,
 };

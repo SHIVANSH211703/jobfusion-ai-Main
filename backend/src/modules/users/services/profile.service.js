@@ -13,9 +13,25 @@ class ProfileService {
   }
 
   async updateProfile(userId, profileData) {
+    const allowedFields = [
+      "name",
+      "phone",
+      "headline",
+      "bio",
+      "location",
+      "experienceLevel",
+      "skills",
+      "linkedin",
+      "github",
+      "portfolio",
+    ];
+    const safeProfileData = Object.fromEntries(
+      Object.entries(profileData).filter(([key]) => allowedFields.includes(key))
+    );
+
     const updatedUser = await profileRepository.updateProfile(
       userId,
-      profileData
+      safeProfileData
     );
 
     if (!updatedUser) {

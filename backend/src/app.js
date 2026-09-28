@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const mongoose = require("mongoose");
 
 const routes = require("./routes");
 const errorMiddleware = require("./middlewares/error.middleware");
@@ -49,6 +50,19 @@ app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
     message: "🚀 JobFusion AI Backend is running...",
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({ success: true, status: "ok" });
+});
+
+app.get("/ready", (req, res) => {
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    success: databaseReady,
+    status: databaseReady ? "ready" : "not_ready",
+    dependencies: { database: databaseReady ? "ready" : "unavailable" },
   });
 });
 

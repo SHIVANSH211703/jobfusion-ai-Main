@@ -8,8 +8,11 @@ import type {
   SavedJobsResponse,
   JobSearchParams,
   ApplicationsResponse,
+  ApplicationStatus,
+  JobApplication,
 } from "@/types/job";
 import type { JobMatchResponse } from "@/types/resume";
+import type { SavedSearch, SavedSearchesResponse, SavedSearchResponse } from "@/types/savedSearch";
 
 class JobService {
   // Get all jobs
@@ -121,6 +124,38 @@ class JobService {
   async getApplications(): Promise<ApplicationsResponse> {
     const response = await axiosInstance.get<ApplicationsResponse>(API.JOBS.APPLIED);
 
+    return response.data;
+  }
+
+  async updateApplicationStatus(
+    jobId: string,
+    status: ApplicationStatus,
+    notes?: string
+  ): Promise<{ success: boolean; data: JobApplication }> {
+    const response = await axiosInstance.patch<{ success: boolean; data: JobApplication }>(
+      API.JOBS.APPLICATION(jobId),
+      { status, ...(notes !== undefined ? { notes } : {}) }
+    );
+    return response.data;
+  }
+
+  async getSavedSearches(): Promise<SavedSearchesResponse> {
+    const response = await axiosInstance.get<SavedSearchesResponse>(API.JOBS.SAVED_SEARCHES);
+    return response.data;
+  }
+
+  async createSavedSearch(payload: Pick<SavedSearch, "name" | "filters">): Promise<SavedSearchResponse> {
+    const response = await axiosInstance.post<SavedSearchResponse>(API.JOBS.SAVED_SEARCHES, payload);
+    return response.data;
+  }
+
+  async updateSavedSearch(id: string, payload: Partial<Pick<SavedSearch, "name" | "filters" | "enabled">>): Promise<SavedSearchResponse> {
+    const response = await axiosInstance.patch<SavedSearchResponse>(API.JOBS.SAVED_SEARCH(id), payload);
+    return response.data;
+  }
+
+  async deleteSavedSearch(id: string): Promise<{ success: boolean }> {
+    const response = await axiosInstance.delete<{ success: boolean }>(API.JOBS.SAVED_SEARCH(id));
     return response.data;
   }
 }

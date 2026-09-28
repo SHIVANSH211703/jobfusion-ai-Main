@@ -2,6 +2,13 @@ const express = require("express");
 
 const jobController = require("../controllers/job.controller");
 const authMiddleware = require("../../../middlewares/auth.middleware");
+const aiRateLimit = require("../../../middlewares/aiRateLimit.middleware");
+const validate = require("../../../middlewares/validation.middleware");
+const {
+  savedSearchIdValidation,
+  createSavedSearchValidation,
+  updateSavedSearchValidation,
+} = require("../validators/savedSearch.validator");
 
 const router = express.Router();
 
@@ -30,6 +37,11 @@ router.get(
   authMiddleware,
   jobController.getApplications
 );
+
+router.get("/saved-searches", authMiddleware, jobController.getSavedSearches);
+router.post("/saved-searches", authMiddleware, createSavedSearchValidation, validate, jobController.createSavedSearch);
+router.patch("/saved-searches/:id", authMiddleware, [...savedSearchIdValidation, ...updateSavedSearchValidation], validate, jobController.updateSavedSearch);
+router.delete("/saved-searches/:id", authMiddleware, savedSearchIdValidation, validate, jobController.deleteSavedSearch);
 
 // ==================== SINGLE JOB ====================
 
@@ -75,6 +87,7 @@ router.patch(
 router.post(
   "/:id/match",
   authMiddleware,
+  aiRateLimit,
   jobController.matchJob
 );
 

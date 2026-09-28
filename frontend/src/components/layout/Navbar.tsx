@@ -9,6 +9,7 @@ import Container from "./Container";
 
 const navLinks = [
   { title: "Features", href: "#features" },
+  { title: "How it works", href: "#how-it-works" },
   { title: "Pricing", href: "#pricing" },
   { title: "Testimonials", href: "#testimonials" },
   { title: "FAQ", href: "#faq" },
@@ -24,44 +25,26 @@ export default function Navbar() {
       setScrolled(window.scrollY > 20);
 
       let current = "";
-
       navLinks.forEach((item) => {
         const section = document.querySelector(item.href);
-
         if (!section) return;
-
-        const top = (section as HTMLElement).offsetTop - 120;
-
-        if (window.scrollY >= top) {
-          current = item.href;
-        }
+        const top = (section as HTMLElement).offsetTop - 140;
+        if (window.scrollY >= top) current = item.href;
       });
-
       setActive(current);
     };
 
     handleScroll();
-
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLinkClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    href: string
-  ) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
-
     setOpen(false);
-
     const section = document.querySelector(href);
-
     if (section) {
-      section.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -69,84 +52,69 @@ export default function Navbar() {
     <header className="fixed inset-x-0 top-0 z-50">
       <Container>
         <motion.nav
-          initial={{ opacity: 0, y: -30 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className={`mt-5 transition-all duration-300 ${
-            scrolled
-              ? "rounded-2xl border border-white/10 bg-slate-950/65 shadow-2xl shadow-violet-950/40 backdrop-blur-3xl"
-              : "rounded-2xl border border-transparent bg-transparent"
+          transition={{ duration: 0.5 }}
+          className={`mt-3 sm:mt-4 transition-all duration-300 ${
+            open
+              ? "rounded-3xl border border-slate-200/90 bg-white/95 shadow-xl backdrop-blur-xl"
+              : scrolled
+              ? "rounded-full border border-slate-200/80 bg-white/75 shadow-[0_15px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl"
+              : "rounded-full border border-transparent bg-transparent"
           }`}
         >
-          <div className="flex h-16 items-center justify-between px-6">
-            <Link href="/" className="flex items-center gap-3">
-              <motion.div
-                whileHover={{ rotate: 10, scale: 1.05 }}
-                className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-cyan-400 shadow-lg shadow-violet-500/40"
-              >
-                <Sparkles className="h-5 w-5 text-white" />
-              </motion.div>
-
+          <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+            <Link href="/" className="flex items-center gap-2.5 sm:gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm shrink-0">
+                <Sparkles className="h-4 w-4" />
+              </span>
               <div>
-                <h2 className="bg-gradient-to-r from-violet-300 via-fuchsia-300 to-cyan-300 bg-clip-text text-xl font-black text-transparent">
-                  JobFusion AI
-                </h2>
-
-                <p className="-mt-1 text-[11px] uppercase tracking-[0.35em] text-white/40">
+                <p className="text-sm sm:text-base font-bold tracking-tight text-foreground">JobFusion AI</p>
+                <p className="-mt-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                   AI Career Platform
                 </p>
               </div>
             </Link>
 
-            <div className="hidden items-center gap-8 lg:flex">
+            <div className="hidden items-center gap-7 lg:flex">
               {navLinks.map((item) => (
                 <Link
                   key={item.title}
                   href={item.href}
                   onClick={(e) => handleLinkClick(e, item.href)}
-                  className="relative text-sm font-medium text-white/65 transition hover:text-white"
+                  className="relative text-sm font-medium text-muted-foreground transition hover:text-foreground"
                 >
                   {item.title}
-
                   {active === item.href && (
                     <motion.span
-                      layoutId="navbar-active"
-                      className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                      layoutId="navbar-indicator"
+                      className="absolute -bottom-2 left-0 h-[2px] w-full rounded-full bg-primary"
                     />
                   )}
                 </Link>
               ))}
             </div>
 
-            {/* Desktop Buttons */}
             <div className="hidden items-center gap-3 lg:flex">
               <Link href="/login">
-                <Button
-                  variant="ghost"
-                  className="rounded-xl text-white hover:bg-white/10"
-                >
+                <Button variant="ghost" className="px-4">
                   Sign In
                 </Button>
               </Link>
-
               <Link href="/register">
-                <Button className="group rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 px-6 shadow-xl shadow-violet-600/30">
-                  Get Started
-
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                <Button className="shadow-xs gap-1.5">
+                  <span>Get Started</span>
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
 
             <button
               onClick={() => setOpen((prev) => !prev)}
-              className="rounded-xl p-2 transition hover:bg-white/10 lg:hidden"
+              aria-label="Toggle navigation menu"
+              className="rounded-full p-2 text-slate-700 transition hover:bg-slate-200/70 lg:hidden"
             >
-              {open ? (
-                <X className="h-6 w-6 text-white" />
-              ) : (
-                <Menu className="h-6 w-6 text-white" />
-              )}
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
 
@@ -156,38 +124,31 @@ export default function Navbar() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="overflow-hidden border-t border-white/10 lg:hidden"
+                className="overflow-hidden border-t border-slate-200/70 bg-white/95 rounded-b-3xl lg:hidden"
               >
-                <div className="space-y-5 px-6 py-6">
+                <div className="space-y-4 px-5 py-5">
                   {navLinks.map((item) => (
                     <Link
                       key={item.title}
                       href={item.href}
                       onClick={(e) => handleLinkClick(e, item.href)}
-                      className="block text-white/70 transition hover:text-white"
+                      className="block text-sm font-medium text-slate-700 py-1"
                     >
                       {item.title}
                     </Link>
                   ))}
-
-                  <Link href="/login">
-                    <Button
-                      variant="ghost"
-                      className="w-full rounded-xl text-white hover:bg-white/10"
-                      onClick={() => setOpen(false)}
-                    >
-                      Sign In
-                    </Button>
-                  </Link>
-
-                  <Link href="/register">
-                    <Button
-                      className="w-full rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500"
-                      onClick={() => setOpen(false)}
-                    >
-                      Get Started
-                    </Button>
-                  </Link>
+                  <div className="pt-2 flex flex-col gap-2.5">
+                    <Link href="/login" onClick={() => setOpen(false)} className="block w-full">
+                      <Button variant="outline" className="w-full justify-center rounded-xl text-slate-700">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link href="/register" onClick={() => setOpen(false)} className="block w-full">
+                      <Button className="w-full justify-center rounded-xl bg-primary text-primary-foreground">
+                        Get started
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </motion.div>
             )}

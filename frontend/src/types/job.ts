@@ -41,6 +41,7 @@ export interface JobSearchParams {
   maxSalary?: number;
   jobType?: string;
   days?: number;
+  sort?: "newest" | "salary_high" | "salary_low";
 }
 
 export interface JobPageData {
@@ -77,9 +78,14 @@ export interface SavedJobsResponse {
 
 export interface JobApplication {
   _id: string;
-  status: "applied" | "interview" | "offer" | "rejected" | "withdrawn";
+  status: ApplicationStatus;
   appliedAt: string;
   notes?: string;
+  statusHistory?: Array<{
+    status: ApplicationStatus;
+    changedAt: string;
+    note?: string;
+  }>;
   jobId?: Job;
   job?: Job;
   resumeId?: { _id: string; title?: string };
@@ -96,3 +102,13 @@ export interface ApplicationsResponse {
     totalPages: number;
   };
 }
+
+export type ApplicationStatus =
+  | "applied"
+  | "screening"
+  | "interview"
+  | "technical"
+  | "hr"
+  | "offer"
+  | "rejected"
+  | "withdrawn";
