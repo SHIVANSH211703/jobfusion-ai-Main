@@ -1,21 +1,27 @@
-"use client";
-
 import { useState } from "react";
+import { Eye } from "lucide-react";
 
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
+
+const PdfViewer = dynamic(() => import("./PdfViewer"), { ssr: false });
 
 import { useATSAnalysis } from "@/hooks/resume/useATSAnalysis";
 import { useResumeImprove } from "@/hooks/resume/useResumeImprove";
 import { useJobMatch } from "@/hooks/resume/useJobMatch";
 import { useCoverLetter } from "@/hooks/resume/useCoverLetter";
+import type { Resume } from "@/types/resume";
 
 interface ResumeActionsProps {
   resumeId: string;
+  resume?: Resume;
 }
 
 export default function ResumeActions({
   resumeId,
+  resume,
 }: ResumeActionsProps) {
+  const [isPdfOpen, setIsPdfOpen] = useState(false);
   const analyzeMutation = useATSAnalysis();
   const improveMutation = useResumeImprove();
   const jobMatchMutation = useJobMatch();
@@ -68,6 +74,16 @@ export default function ResumeActions({
     <div className="space-y-6">
 
       <div className="flex flex-wrap gap-3">
+
+        <Button
+          variant="outline"
+          onClick={() => setIsPdfOpen(true)}
+          className="gap-1.5"
+          aria-label="View Resume PDF"
+        >
+          <Eye className="h-4 w-4" />
+          <span>View PDF</span>
+        </Button>
 
         <Button
           onClick={handleAnalyze}
@@ -159,6 +175,18 @@ export default function ResumeActions({
             {coverLetterMutation.data.data.coverLetter}
           </pre>
         </div>
+      )}
+
+      {isPdfOpen && (
+        <PdfViewer
+          isOpen={isPdfOpen}
+          onClose={() => setIsPdfOpen(false)}
+          resumeId={resumeId}
+          title={resume?.title || "Resume"}
+          fileType={resume?.fileType}
+          fileUrl={resume?.fileUrl}
+          hasFile={resume?.hasFile}
+        />
       )}
 
     </div>

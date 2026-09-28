@@ -38,21 +38,28 @@ const findOwnedApplication = async (userId, applicationId) => {
 
 const updateApplicationStatus = async (
   userId,
-  jobId,
+  targetId,
   status,
-  notes
+  notes,
+  followUpDate
 ) => {
-  const existingApplication = await Application.findOne({ userId, jobId });
+  const existingApplication = await Application.findOne({
+    userId,
+    $or: [{ jobId: targetId }, { _id: targetId }],
+  });
   if (!existingApplication) return null;
 
   const update = {
     $set: {
-      status,
+      ...(status ? { status } : {}),
       ...(notes !== undefined ? { notes } : {}),
+      ...(followUpDate !== undefined
+        ? { followUpDate: followUpDate ? new Date(followUpDate) : null }
+        : {}),
     },
   };
 
-  if (existingApplication.status !== status) {
+  if (status && existingApplication.status !== status) {
     update.$push = {
       statusHistory: {
         status,
@@ -64,14 +71,21 @@ const updateApplicationStatus = async (
 
   return Application.findOneAndUpdate(
     {
+      _id: existingApplication._id,
       userId,
-      jobId,
     },
     update,
     {
       new: true,
     }
   ).populate("jobId").populate("resumeId").lean();
+};
+
+const deleteApplication = async (userId, targetId) => {
+  return Application.findOneAndDelete({
+    userId,
+    $or: [{ jobId: targetId }, { _id: targetId }],
+  });
 };
 
 const getApplications = async (
@@ -121,5 +135,6 @@ module.exports = {
   getApplication,
   findOwnedApplication,
   updateApplicationStatus,
+  deleteApplication,
   getApplications,
 };

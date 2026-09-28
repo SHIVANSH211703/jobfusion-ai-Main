@@ -51,6 +51,7 @@ export default function ResumeEditorPage() {
         <div className="w-full lg:max-w-md">
           <ResumeActions
             resumeId={resume._id ?? resume.id!}
+            resume={resume}
           />
         </div>
       </div>

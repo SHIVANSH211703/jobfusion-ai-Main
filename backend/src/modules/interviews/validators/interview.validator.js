@@ -10,6 +10,7 @@ const createInterviewValidation = [
   body("type").isIn(["phone", "video", "onsite", "other"]),
   body("scheduledAt").isISO8601().toDate(),
   body("interviewer").optional().isString().trim().isLength({ max: 160 }),
+  body("meetingLink").optional({ checkFalsy: true }).isString().trim().isLength({ max: 500 }),
   body("notes").optional().isString().trim().isLength({ max: 5000 }),
 ];
 
@@ -22,6 +23,7 @@ const updateInterviewValidation = [
   body("type").optional().isIn(["phone", "video", "onsite", "other"]),
   body("scheduledAt").optional().isISO8601().toDate(),
   body("interviewer").optional().isString().trim().isLength({ max: 160 }),
+  body("meetingLink").optional({ checkFalsy: true }).isString().trim().isLength({ max: 500 }),
   body("notes").optional().isString().trim().isLength({ max: 5000 }),
   body("status").optional().isIn(["scheduled", "completed", "cancelled"]),
   body("feedback").optional().isString().trim().isLength({ max: 5000 }),

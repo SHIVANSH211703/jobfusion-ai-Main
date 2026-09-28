@@ -85,6 +85,11 @@ export interface Resume {
 
   customSections?: unknown[];
 
+  fileUrl?: string | null;
+  fileType?: string | null;
+  originalName?: string | null;
+  hasFile?: boolean;
+
   createdAt: string;
   updatedAt: string;
 }

@@ -66,7 +66,12 @@ class ResumeUploadService {
     const resume = await this.processResume(
       upload._id,
       extractedText,
-      userId
+      userId,
+      {
+        fileUrl: upload.fileUrl,
+        fileType: upload.fileType,
+        originalName: upload.originalName,
+      }
     );
 
     return {
@@ -121,15 +126,16 @@ class ResumeUploadService {
       throw new AppError("Unable to parse DOCX.", 500);
     }
   }
-    async processResume(uploadId, extractedText, userId) {
+  async processResume(uploadId, extractedText, userId, uploadMetadata = {}) {
     try {
-     const parsedResume =
-  await aiService.parseResume(extractedText);
+      const parsedResume =
+        await aiService.parseResume(extractedText);
 
       const resume =
         await this.createResume(
           userId,
-          parsedResume
+          parsedResume,
+          uploadMetadata
         );
 
       await resumeUploadRepository.attachResume(
@@ -147,15 +153,19 @@ class ResumeUploadService {
     }
   }
 
- async createResume(userId, parsedResume) {
-  const resume = await resumeRepository.create({
-    user: userId,
+  async createResume(userId, parsedResume, uploadMetadata = {}) {
+    const resume = await resumeRepository.create({
+      user: userId,
 
-    title: parsedResume.title || "Imported Resume",
+      title: parsedResume.title || "Imported Resume",
 
-    template: parsedResume.template || "modern",
+      template: parsedResume.template || "modern",
 
-    status: "draft",
+      status: "draft",
+
+      fileUrl: uploadMetadata.fileUrl || "",
+      fileType: uploadMetadata.fileType || "",
+      originalName: uploadMetadata.originalName || "",
 
     personalInfo: {
       fullName: parsedResume.personalInfo?.fullName || "",

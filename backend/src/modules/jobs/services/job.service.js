@@ -390,15 +390,21 @@ const getApplication = async (
 
 const updateApplicationStatus = async (
   userId,
-  jobId,
+  targetId,
   status,
-  notes
+  notes,
+  followUpDate
 ) => {
-  const application =
-    await applicationRepository.getApplication(
+  let application = await applicationRepository.getApplication(
+    userId,
+    targetId
+  );
+  if (!application) {
+    application = await applicationRepository.findOwnedApplication(
       userId,
-      jobId
+      targetId
     );
+  }
 
   if (!application) {
     const error = new Error(
@@ -411,6 +417,7 @@ const updateApplicationStatus = async (
   }
 
   if (
+    status &&
     !APPLICATION_STATUSES.includes(status)
   ) {
     const error = new Error(
@@ -424,20 +431,22 @@ const updateApplicationStatus = async (
 
   const updatedApplication = await applicationRepository.updateApplicationStatus(
     userId,
-    jobId,
-    status,
-    notes
+    targetId,
+    status || application.status,
+    notes,
+    followUpDate
   );
 
-  if (application.status !== status) {
-    const job = await jobRepository.findJobById(jobId);
+  if (status && application.status !== status) {
+    const targetJobId = application.jobId?._id || application.jobId || targetId;
+    const job = await jobRepository.findJobById(targetJobId);
     try {
       await notificationService.create({
         userId,
         type: "APPLICATION_UPDATE",
         title: "Application status updated",
         message: `${job?.company || "An employer"} application moved to ${status}.`,
-        metadata: { applicationId: application._id, jobId, status },
+        metadata: { applicationId: application._id, jobId: targetJobId, status },
       });
     } catch (error) {
       console.error("Application notification could not be stored", { code: error.code });
@@ -445,6 +454,14 @@ const updateApplicationStatus = async (
   }
 
   return updatedApplication;
+};
+
+const deleteApplication = async (userId, targetId) => {
+  const deleted = await applicationRepository.deleteApplication(userId, targetId);
+  if (!deleted) {
+    throw new Error("Application not found");
+  }
+  return deleted;
 };
 
 // ======================================================
@@ -526,6 +543,7 @@ module.exports = {
   getApplications,
   getApplication,
   updateApplicationStatus,
+  deleteApplication,
   matchJobWithResume,
   getSavedSearches,
   createSavedSearch,

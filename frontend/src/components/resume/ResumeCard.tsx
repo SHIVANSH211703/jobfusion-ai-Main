@@ -3,18 +3,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Trash2, ExternalLink } from "lucide-react";
+import { FileText, Trash2, Edit3, Eye, Download } from "lucide-react";
 import type { Resume } from "@/types/resume";
 
 interface ResumeCardProps {
   resume: Resume;
   onView?: (id: string) => void;
+  onViewPdf?: (resume: Resume) => void;
+  onDownload?: (resume: Resume) => void;
   onDelete?: (id: string) => void;
 }
 
 export default function ResumeCard({
   resume,
   onView,
+  onViewPdf,
+  onDownload,
   onDelete,
 }: ResumeCardProps) {
   if (!resume) return null;
@@ -61,27 +65,51 @@ export default function ResumeCard({
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-border/60 pt-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
           <span className="text-xs text-muted-foreground">
             Updated {new Date(resume.updatedAt).toLocaleDateString()}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Button
+              size="sm"
+              variant="default"
+              className="h-8 gap-1.5 rounded-lg text-xs font-medium"
+              onClick={() => onViewPdf?.(resume)}
+              aria-label={`View PDF for ${resume.title}`}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <span>View PDF</span>
+            </Button>
+
             <Button
               size="sm"
               variant="outline"
               className="h-8 gap-1.5 rounded-lg text-xs"
-              onClick={() => onView?.(resumeId)}
+              onClick={() => onDownload?.(resume)}
+              aria-label={`Download resume ${resume.title}`}
             >
-              <span>View</span>
-              <ExternalLink className="h-3 w-3" />
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Download</span>
             </Button>
 
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 rounded-lg text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              className="h-8 gap-1 rounded-lg text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => onView?.(resumeId)}
+              aria-label={`Edit ${resume.title}`}
+            >
+              <Edit3 className="h-3.5 w-3.5" />
+              <span>Edit</span>
+            </Button>
+
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 w-8 rounded-lg text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               onClick={() => onDelete?.(resumeId)}
+              aria-label={`Delete ${resume.title}`}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

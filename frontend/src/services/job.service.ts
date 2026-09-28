@@ -129,12 +129,24 @@ class JobService {
 
   async updateApplicationStatus(
     jobId: string,
-    status: ApplicationStatus,
-    notes?: string
+    status?: ApplicationStatus,
+    notes?: string,
+    followUpDate?: string | null
   ): Promise<{ success: boolean; data: JobApplication }> {
     const response = await axiosInstance.patch<{ success: boolean; data: JobApplication }>(
       API.JOBS.APPLICATION(jobId),
-      { status, ...(notes !== undefined ? { notes } : {}) }
+      {
+        ...(status ? { status } : {}),
+        ...(notes !== undefined ? { notes } : {}),
+        ...(followUpDate !== undefined ? { followUpDate } : {}),
+      }
+    );
+    return response.data;
+  }
+
+  async deleteApplication(id: string): Promise<{ success: boolean; message: string }> {
+    const response = await axiosInstance.delete<{ success: boolean; message: string }>(
+      API.JOBS.APPLICATION(id)
     );
     return response.data;
   }

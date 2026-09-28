@@ -82,6 +82,12 @@ router.patch(
   jobController.updateApplicationStatus
 );
 
+router.delete(
+  "/:id/application",
+  authMiddleware,
+  jobController.deleteApplication
+);
+
 // ==================== AI MATCH ====================
 
 router.post(

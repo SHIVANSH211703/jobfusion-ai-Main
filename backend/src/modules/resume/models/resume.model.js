@@ -255,6 +255,21 @@ const resumeSchema = new mongoose.Schema(
       default: "draft",
     },
 
+    fileUrl: {
+      type: String,
+      default: "",
+    },
+
+    fileType: {
+      type: String,
+      default: "",
+    },
+
+    originalName: {
+      type: String,
+      default: "",
+    },
+
     isDefault: {
       type: Boolean,
       default: false,

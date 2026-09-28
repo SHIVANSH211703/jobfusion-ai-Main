@@ -340,6 +340,7 @@ const updateApplicationStatus =
     const {
       status,
       notes,
+      followUpDate,
     } = req.body;
 
     const result =
@@ -347,7 +348,8 @@ const updateApplicationStatus =
         userId,
         id,
         status,
-        notes
+        notes,
+        followUpDate
       );
 
     res.status(200).json({
@@ -355,6 +357,39 @@ const updateApplicationStatus =
       message:
         "Application status updated successfully",
       data: result,
+    });
+  });
+
+// ======================================================
+// DELETE APPLICATION
+// ======================================================
+
+const deleteApplication =
+  asyncHandler(async (req, res) => {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "Authentication required",
+      });
+    }
+
+    const { id } = req.params;
+
+    const result = await jobService.deleteApplication(userId, id);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Application deleted successfully",
     });
   });
 
@@ -438,6 +473,7 @@ module.exports = {
   getApplications,
   getApplication,
   updateApplicationStatus,
+  deleteApplication,
   matchJob,
   getSavedSearches,
   createSavedSearch,

@@ -188,6 +188,15 @@ generateCoverLetter = asyncHandler(async (req, res) => {
     });
   });
 
+  getResumeFile = asyncHandler(async (req, res) => {
+    const isDownload = req.query.download === "true";
+    await resumeService.getResumeFile(
+      req.user.id,
+      req.params.id,
+      isDownload,
+      res
+    );
+  });
 }
 
 module.exports = new ResumeController();

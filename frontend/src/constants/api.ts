@@ -49,6 +49,7 @@ export const API = {
     UPLOAD: "/resume-upload",
 
     GET_BY_ID: (id: string) => `/resume/${id}`,
+    GET_FILE: (id: string) => `/resume/${id}/file`,
     UPDATE: (id: string) => `/resume/${id}`,
     DELETE: (id: string) => `/resume/${id}`,
 

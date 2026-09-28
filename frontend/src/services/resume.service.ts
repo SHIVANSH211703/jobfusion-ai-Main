@@ -1,3 +1,4 @@
+import axios from "axios";
 import axiosInstance from "@/lib/axios";
 import { API } from "@/constants/api";
 
@@ -200,6 +201,58 @@ class ResumeService {
   async restoreVersion(id: string, versionId: string): Promise<ResumeResponse> {
     const response = await axiosInstance.post<ResumeResponse>(API.RESUME.RESTORE_VERSION(id, versionId));
     return response.data;
+  }
+
+  getResumeFileUrl(id: string, download: boolean = false): string {
+    return `${API.BASE_URL}${API.RESUME.GET_FILE(id)}${download ? "?download=true" : ""}`;
+  }
+
+  async getResumeFileArrayBuffer(id: string): Promise<ArrayBuffer> {
+    try {
+      const response = await axiosInstance.get<ArrayBuffer>(
+        API.RESUME.GET_FILE(id),
+        {
+          responseType: "arraybuffer",
+        }
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        if (error.response.data instanceof ArrayBuffer) {
+          try {
+            const text = new TextDecoder().decode(error.response.data);
+            const parsed = JSON.parse(text);
+            if (parsed.message) {
+              throw new Error(parsed.message);
+            }
+          } catch (decodeErr: unknown) {
+            if (decodeErr instanceof Error && decodeErr.message !== (error.message || "Failed to fetch file")) {
+              throw decodeErr;
+            }
+          }
+        }
+      }
+      throw error;
+    }
+  }
+
+  async downloadResumeFile(id: string, fileName: string = "Resume.pdf"): Promise<void> {
+    const response = await axiosInstance.get(
+      `${API.RESUME.GET_FILE(id)}?download=true`,
+      {
+        responseType: "blob",
+      }
+    );
+
+    const blob = new Blob([response.data]);
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
   }
 }
 

@@ -11,6 +11,7 @@ export interface Interview {
   type: InterviewType;
   scheduledAt: string;
   interviewer: string;
+  meetingLink?: string;
   notes: string;
   status: InterviewStatus;
   feedback: string;
@@ -34,6 +35,7 @@ export interface CreateInterviewRequest {
   type: InterviewType;
   scheduledAt: string;
   interviewer?: string;
+  meetingLink?: string;
   notes?: string;
 }
 

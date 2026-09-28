@@ -81,6 +81,7 @@ export interface JobApplication {
   status: ApplicationStatus;
   appliedAt: string;
   notes?: string;
+  followUpDate?: string | null;
   statusHistory?: Array<{
     status: ApplicationStatus;
     changedAt: string;
@@ -88,7 +89,15 @@ export interface JobApplication {
   }>;
   jobId?: Job;
   job?: Job;
-  resumeId?: { _id: string; title?: string };
+  resumeId?: {
+    _id: string;
+    title?: string;
+    fileUrl?: string | null;
+    fileType?: string | null;
+    originalName?: string | null;
+    fileName?: string | null;
+    hasFile?: boolean;
+  };
 }
 
 export interface ApplicationsResponse {

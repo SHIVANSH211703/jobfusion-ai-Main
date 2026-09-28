@@ -84,6 +84,13 @@ router.get(
   resumeController.getResumeById
 );
 
+router.get(
+  "/:id/file",
+  resumeIdValidation,
+  validate,
+  resumeController.getResumeFile
+);
+
 router.put(
   "/:id",
   [...resumeIdValidation, ...updateResumeValidation],

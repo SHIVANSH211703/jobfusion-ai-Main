@@ -5,7 +5,10 @@ class InterviewRepository {
     const interview = await Interview.create(data);
     return interview.populate({
       path: "applicationId",
-      populate: { path: "jobId", select: "title company location" },
+      populate: [
+        { path: "jobId", select: "title company location description" },
+        { path: "resumeId", select: "title originalName fileName fileUrl" },
+      ],
     });
   }
 
@@ -13,7 +16,10 @@ class InterviewRepository {
     return Interview.find({ userId })
       .populate({
         path: "applicationId",
-        populate: { path: "jobId", select: "title company location" },
+        populate: [
+          { path: "jobId", select: "title company location description" },
+          { path: "resumeId", select: "title originalName fileName fileUrl" },
+        ],
       })
       .sort({ scheduledAt: 1 })
       .lean();

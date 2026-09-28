@@ -1,506 +1,598 @@
 "use client";
 
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import {
-  ArrowLeft,
   Briefcase,
-  Building2,
-  CalendarDays,
-  CheckCircle2,
-  Clock3,
-  ExternalLink,
-  Loader2,
-  MapPin,
-  XCircle,
+  Search,
+  Filter,
+  Kanban,
+  List,
+  ArrowUpDown,
+  X,
+  AlertCircle,
+  RefreshCw,
+  PlusCircle,
+  ChevronDown,
 } from "lucide-react";
+import {
+  useApplications,
+  useUpdateApplicationStatus,
+  useDeleteApplication,
+} from "@/hooks/jobs/useApplications";
+import type { JobApplication, ApplicationStatus } from "@/types/job";
+import ApplicationStats from "@/components/applications/ApplicationStats";
+import ApplicationKanban from "@/components/applications/ApplicationKanban";
+import ApplicationList from "@/components/applications/ApplicationList";
+import ApplicationDetailModal from "@/components/applications/ApplicationDetailModal";
+import { ALL_STATUSES } from "@/components/applications/applicationUtils";
 
-import { useApplications } from "@/hooks/jobs/useApplications";
-import { useUpdateApplicationStatus } from "@/hooks/jobs/useApplications";
-import type { ApplicationStatus, JobApplication } from "@/types/job";
+// Dynamically import PdfViewer to prevent SSR issues with pdfjs-dist
+const PdfViewer = dynamic(() => import("@/components/resume/PdfViewer"), {
+  ssr: false,
+});
 
-const applicationStatuses: ApplicationStatus[] = [
-  "applied",
-  "screening",
-  "interview",
-  "technical",
-  "hr",
-  "offer",
-  "rejected",
-  "withdrawn",
-];
+function ApplicationsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-export default function ApplicationsPage() {
-  const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all");
-  const updateStatus = useUpdateApplicationStatus();
-  const {
-    data,
-    isLoading,
-    isError,
-  } = useApplications();
+  // URL state initialization
+  const initialStatus = searchParams.get("status") || "all";
+  const initialSearch = searchParams.get("search") || "";
 
-  const applications: JobApplication[] = data?.data?.applications ?? [];
-  const filteredApplications = statusFilter === "all"
-    ? applications
-    : applications.filter((application) => application.status === statusFilter);
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+  const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 
-  /*
-   * Backend may return:
-   *
-   * data: []
-   *
-   * OR
-   *
-   * data: {
-   *   applications: []
-   * }
-   *
-   * OR
-   *
-   * data: {
-   *   jobs: []
-   * }
-   */
+  // Selection states
+  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
 
-  const getStatusStyles = (status: string) => {
-    switch (status) {
-      case "interview":
-      case "screening":
-      case "technical":
-      case "hr":
-        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
+  // Resume PDF viewer state
+  const [resumeViewerState, setResumeViewerState] = useState<{
+    isOpen: boolean;
+    resumeId: string;
+    title: string;
+  }>({
+    isOpen: false,
+    resumeId: "",
+    title: "Resume Preview",
+  });
 
-      case "offer":
-        return "bg-green-500/10 text-green-600 border-green-500/20";
+  // Delete confirmation modal state
+  const [applicationToDelete, setApplicationToDelete] = useState<JobApplication | null>(null);
 
-      case "rejected":
-        return "bg-red-500/10 text-red-600 border-red-500/20";
+  // Queries and mutations
+  const { data, isLoading, isError, refetch } = useApplications();
+  const updateStatusMutation = useUpdateApplicationStatus();
+  const deleteApplicationMutation = useDeleteApplication();
 
-      case "withdrawn":
-        return "bg-gray-500/10 text-gray-600 border-gray-500/20";
+  const applications: JobApplication[] = useMemo(() => {
+    return data?.data?.applications ?? [];
+  }, [data]);
 
-      default:
-        return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
+  // Keep view preference in localStorage
+  useEffect(() => {
+    try {
+      const savedView = localStorage.getItem("jobfusion_applications_view");
+      if (savedView === "list" || savedView === "kanban") {
+        setViewMode(savedView);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  const handleViewChange = (newView: "kanban" | "list") => {
+    setViewMode(newView);
+    try {
+      localStorage.setItem("jobfusion_applications_view", newView);
+    } catch {
+      // Ignore
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "interview":
-        return <Clock3 className="h-4 w-4" />;
+  // Sync search and filter with URL params
+  const updateUrlParams = (newSearch: string, newStatus: string) => {
+    const params = new URLSearchParams();
+    if (newSearch) params.set("search", newSearch);
+    if (newStatus && newStatus !== "all") params.set("status", newStatus);
+    const queryString = params.toString();
+    router.replace(queryString ? `/applications?${queryString}` : "/applications", {
+      scroll: false,
+    });
+  };
 
-      case "offer":
-        return (
-          <CheckCircle2 className="h-4 w-4" />
-        );
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    updateUrlParams(val, statusFilter);
+  };
 
-      case "rejected":
-        return (
-          <XCircle className="h-4 w-4" />
-        );
+  const handleStatusFilterChange = (val: string) => {
+    setStatusFilter(val);
+    updateUrlParams(searchQuery, val);
+  };
 
-      default:
-        return (
-          <Briefcase className="h-4 w-4" />
+  // Filter and sort applications
+  const filteredApplications = useMemo(() => {
+    return applications
+      .filter((app) => {
+        const job = app.jobId && typeof app.jobId === "object" ? app.jobId : app.job;
+        const title = (job?.title || "").toLowerCase();
+        const company = (job?.company || "").toLowerCase();
+        const location = (job?.location || "").toLowerCase();
+        const q = searchQuery.toLowerCase().trim();
+
+        const matchesQuery = !q || title.includes(q) || company.includes(q) || location.includes(q);
+        const matchesStatus =
+          statusFilter === "all" ||
+          app.status === statusFilter ||
+          (statusFilter === "interview" && (app.status === "technical" || app.status === "hr"));
+
+        return matchesQuery && matchesStatus;
+      })
+      .sort((a, b) => {
+        const dateA = a.appliedAt ? new Date(a.appliedAt).getTime() : 0;
+        const dateB = b.appliedAt ? new Date(b.appliedAt).getTime() : 0;
+        return sortBy === "newest" ? dateB - dateA : dateA - dateB;
+      });
+  }, [applications, searchQuery, statusFilter, sortBy]);
+
+  // Actions
+  const handleSelectApplication = (app: JobApplication) => {
+    setSelectedApplication(app);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleViewResume = (resumeId: string, title: string) => {
+    setResumeViewerState({
+      isOpen: true,
+      resumeId,
+      title,
+    });
+  };
+
+  const handleStatusChange = (
+    jobIdOrAppId: string,
+    newStatus: ApplicationStatus,
+    notes?: string,
+    followUpDate?: string | null
+  ) => {
+    updateStatusMutation.mutate({
+      jobId: jobIdOrAppId,
+      status: newStatus,
+      notes,
+      followUpDate,
+    });
+
+    // If modal is open and has matching application, update selectedApplication state
+    if (selectedApplication) {
+      const selectedJob =
+        selectedApplication.jobId && typeof selectedApplication.jobId === "object"
+          ? selectedApplication.jobId
+          : selectedApplication.job;
+      const targetId = selectedJob?._id || selectedApplication._id;
+      if (targetId === jobIdOrAppId) {
+        setSelectedApplication((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: newStatus,
+                notes: notes !== undefined ? notes : prev.notes,
+                followUpDate: followUpDate !== undefined ? followUpDate : prev.followUpDate,
+              }
+            : null
         );
+      }
     }
   };
 
-  /*
-   * Loading state
-   */
+  const handleConfirmDelete = () => {
+    if (!applicationToDelete) return;
+    const job =
+      applicationToDelete.jobId && typeof applicationToDelete.jobId === "object"
+        ? applicationToDelete.jobId
+        : applicationToDelete.job;
+    const targetId = job?._id || applicationToDelete._id;
+
+    deleteApplicationMutation.mutate(targetId, {
+      onSuccess: () => {
+        setApplicationToDelete(null);
+        if (selectedApplication?._id === applicationToDelete._id) {
+          setIsDetailModalOpen(false);
+          setSelectedApplication(null);
+        }
+      },
+    });
+  };
+
+  // 1. Loading State
   if (isLoading) {
     return (
-      <div className="flex min-h-[500px] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6 animate-pulse p-1 sm:p-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-muted rounded-xl" />
+            <div className="h-4 w-72 bg-muted/60 rounded-lg" />
+          </div>
+          <div className="h-10 w-32 bg-muted rounded-xl" />
+        </div>
 
-          <p className="text-sm text-muted-foreground">
-            Loading your applications...
-          </p>
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-24 bg-card border border-border rounded-2xl p-4" />
+          ))}
+        </div>
+
+        {/* Filter skeleton */}
+        <div className="h-12 bg-card border border-border rounded-2xl" />
+
+        {/* Board skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-96 bg-card/60 border border-border rounded-2xl" />
+          ))}
         </div>
       </div>
     );
   }
 
-  /*
-   * Error state
-   */
+  // 2. Error State
   if (isError) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/jobs"
-            className="flex h-10 w-10 items-center justify-center rounded-lg border transition hover:bg-muted"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
-              My Applications
-            </h1>
-
-            <p className="text-sm text-muted-foreground">
-              Track all your job applications
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Applications</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Track every job application from submission to final outcome.
             </p>
           </div>
         </div>
 
-        <div className="flex min-h-[350px] flex-col items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/5 p-8 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-            <XCircle className="h-7 w-7 text-destructive" />
+        <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-destructive/20 bg-destructive/5 p-8 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
+            <AlertCircle className="h-7 w-7" />
           </div>
-
-          <h2 className="text-xl font-semibold">
-            Unable to load applications
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+            Unable to load your applications
           </h2>
-
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            We couldn&apos;t fetch your applications.
-            Please try again.
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+            We couldn&apos;t connect to your job applications right now. Please verify your connection or try again.
           </p>
-
-          <Link
-            href="/applications"
-            className="mt-6 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity"
           >
+            <RefreshCw className="h-4 w-4" />
             Try Again
-          </Link>
+          </button>
         </div>
       </div>
     );
   }
 
-  /*
-   * Empty state
-   */
+  // 3. Global Empty State (User has zero applications across the board)
   if (applications.length === 0) {
     return (
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link
-            href="/jobs"
-            className="flex h-10 w-10 items-center justify-center rounded-lg border transition hover:bg-muted"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
-              My Applications
-            </h1>
-
-            <p className="text-sm text-muted-foreground">
-              Track all your job applications
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Applications</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Track every job application from submission to final outcome.
             </p>
           </div>
         </div>
 
-        {/* Empty Card */}
-        <div className="flex min-h-[450px] flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center">
-          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <Briefcase className="h-10 w-10 text-primary" />
+        <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/60 p-8 text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Briefcase className="h-8 w-8" />
           </div>
-
-          <h2 className="text-2xl font-semibold">
-            No applications yet
-          </h2>
-
-          <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-            You haven&apos;t applied to any jobs yet.
-            Start exploring jobs and apply to the
-            opportunities that match your skills.
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">No applications yet</h2>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+            Start applying to jobs and your applications will automatically appear here with full status tracking, follow-ups, and resume insights.
           </p>
-
           <Link
             href="/jobs"
-            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-all active:scale-95"
           >
             <Briefcase className="h-4 w-4" />
-            Find Jobs
+            Explore Jobs
           </Link>
         </div>
       </div>
     );
   }
 
-  /*
-   * Applications list
-   */
+  // 4. Main Applications View
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Applications
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Track every job application from submission to final outcome.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
           <Link
             href="/jobs"
-            className="flex h-10 w-10 items-center justify-center rounded-lg border transition hover:bg-muted"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-4 sm:px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-all active:scale-95"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <PlusCircle className="h-4 w-4" />
+            <span>Find More Jobs</span>
           </Link>
-
-          <div>
-            <h1 className="text-2xl font-bold">
-              My Applications
-            </h1>
-
-            <p className="text-sm text-muted-foreground">
-              Track all your job applications
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href="/jobs"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-        >
-          <Briefcase className="h-4 w-4" />
-          Find More Jobs
-        </Link>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Total Applications
-              </p>
-
-              <p className="mt-2 text-2xl font-bold">
-                {applications.length}
-              </p>
-            </div>
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
-              <Briefcase className="h-5 w-5 text-primary" />
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Interviews
-              </p>
-
-              <p className="mt-2 text-2xl font-bold">
-                {
-                  applications.filter(
-                    (application) =>
-                      application.status ===
-                      "interview"
-                  ).length
-                }
-              </p>
-            </div>
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/10">
-              <Clock3 className="h-5 w-5 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Offers
-              </p>
-
-              <p className="mt-2 text-2xl font-bold">
-                {
-                  applications.filter(
-                    (application) =>
-                      application.status ===
-                      "offer"
-                  ).length
-                }
-              </p>
-            </div>
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500/10">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2" aria-label="Application status filters">
-        {(["all", ...applicationStatuses] as const).map((filter) => (
-          <button
-            key={filter}
-            type="button"
-            onClick={() => setStatusFilter(filter)}
-            className={`rounded-lg border px-3 py-2 text-sm font-medium capitalize transition ${
-              statusFilter === filter
-                ? "border-primary bg-primary text-primary-foreground"
-                : "hover:bg-muted"
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
+      {/* Real Summary Statistics */}
+      <ApplicationStats applications={applications} />
 
-      {/* Applications */}
-      <div className="space-y-4">
-        {filteredApplications.length === 0 ? (
-          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-            No applications match this status.
+      {/* Toolbar: Search, Filters, Sorters & View Switcher */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search by job title, company, or location..."
+              className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-9 text-sm text-foreground placeholder:text-muted-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => handleSearchChange("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
-        ) : filteredApplications.map((application) => {
-          /*
-           * Backend may populate jobId:
-           *
-           * jobId: {
-           *   _id,
-           *   title,
-           *   company,
-           *   location
-           * }
-           *
-           * Or it may return job separately.
-           */
-          const job =
-            application.jobId &&
-            typeof application.jobId === "object"
-              ? application.jobId
-              : application.job;
 
-          const status =
-            application.status || "applied";
+          {/* Filters, Sorters & View Switcher */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Status Filter Dropdown */}
+            <div className="relative flex-1 sm:flex-initial min-w-[140px]">
+              <select
+                aria-label="Filter by application status"
+                value={statusFilter}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-xs sm:text-sm font-medium text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary capitalize"
+              >
+                <option value="all">All Statuses ({applications.length})</option>
+                {ALL_STATUSES.map((opt) => {
+                  const count = applications.filter((a) => {
+                    if (opt.value === "interview") {
+                      return (
+                        a.status === "interview" ||
+                        a.status === "technical" ||
+                        a.status === "hr"
+                      );
+                    }
+                    return a.status === opt.value;
+                  }).length;
+                  return (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
 
-          return (
+            {/* Sort Dropdown */}
+            <div className="relative flex-1 sm:flex-initial min-w-[130px]">
+              <select
+                aria-label="Sort applications"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "newest" | "oldest")}
+                className="h-11 w-full rounded-xl border border-border bg-background px-3 text-xs sm:text-sm font-medium text-foreground shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
+
+            {/* View Mode Toggle: [Kanban] [List] */}
             <div
-              key={
-                application._id ||
-                `${job?._id}-${application.appliedAt}`
-              }
-              className="rounded-2xl border bg-card p-4 sm:p-5 transition hover:shadow-md"
+              className="inline-flex h-11 items-center rounded-xl border border-border bg-muted/40 p-1"
+              role="radiogroup"
+              aria-label="Application view switch"
             >
-              <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between">
-                {/* Job Information */}
-                <div className="min-w-0 space-y-2.5 sm:space-y-3">
-                  <div>
-                    <h2 className="truncate text-base sm:text-lg font-semibold">
-                      {job?.title ||
-                        "Job Application"}
-                    </h2>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={viewMode === "kanban"}
+                onClick={() => handleViewChange("kanban")}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs sm:text-sm font-semibold transition-all ${
+                  viewMode === "kanban"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Kanban className="h-4 w-4" />
+                <span>Kanban</span>
+              </button>
 
-                    {job?.company && (
-                      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                        <Building2 className="h-4 w-4 shrink-0" />
-
-                        <span>
-                          {job.company}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs sm:text-sm text-muted-foreground">
-                    {job?.location && (
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-4 w-4 shrink-0" />
-
-                        <span>
-                          {job.location}
-                        </span>
-                      </div>
-                    )}
-
-                    {application.appliedAt && (
-                      <div className="flex items-center gap-1.5">
-                        <CalendarDays className="h-4 w-4 shrink-0" />
-
-                        <span>
-                          Applied{" "}
-                          {new Date(
-                            application.appliedAt
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Status + Action */}
-                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium capitalize ${getStatusStyles(
-                      status
-                    )}`}
-                  >
-                    {getStatusIcon(status)}
-
-                    {status}
-                  </span>
-
-                  {job?._id && (
-                    <Link
-                      href={`/jobs/${job._id}`}
-                      className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition hover:bg-muted"
-                    >
-                      View Job
-
-                      <ExternalLink className="h-4 w-4" />
-                    </Link>
-                  )}
-
-                  {job?._id && (
-                    <select
-                      aria-label={`Update status for ${job.title ?? "application"}`}
-                      value={status}
-                      disabled={updateStatus.isPending}
-                      onChange={(event) => updateStatus.mutate({
-                        jobId: job._id,
-                        status: event.target.value as ApplicationStatus,
-                        notes: application.notes,
-                      })}
-                      className="h-10 rounded-lg border border-border bg-background px-3 text-sm capitalize"
-                    >
-                      {applicationStatuses.map((value) => <option key={value} value={value}>{value}</option>)}
-                    </select>
-                  )}
-                </div>
-              </div>
-
-              <ol className="mt-5 space-y-3 border-l border-border pl-4" aria-label="Application timeline">
-                {(application.statusHistory?.length
-                  ? application.statusHistory
-                  : [{ status: "applied" as const, changedAt: application.appliedAt }]
-                ).map((event, index) => (
-                  <li key={`${event.status}-${event.changedAt}-${index}`} className="relative text-sm">
-                    <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
-                    <span className="font-medium capitalize">{event.status}</span>
-                    <span className="ml-2 text-xs text-muted-foreground">{new Date(event.changedAt).toLocaleString()}</span>
-                    {event.note && <p className="mt-1 text-xs text-muted-foreground">{event.note}</p>}
-                  </li>
-                ))}
-              </ol>
-
-              {/* Notes */}
-              {application.notes && (
-                <div className="mt-5 rounded-xl bg-muted/50 p-4">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Notes
-                  </p>
-
-                  <p className="mt-1 text-sm">
-                    {application.notes}
-                  </p>
-                </div>
-              )}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={viewMode === "list"}
+                onClick={() => handleViewChange("list")}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs sm:text-sm font-semibold transition-all ${
+                  viewMode === "list"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <List className="h-4 w-4" />
+                <span>List</span>
+              </button>
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        {/* Active Filters Display */}
+        {(searchQuery || statusFilter !== "all") && (
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/60 text-xs">
+            <span className="text-muted-foreground font-medium">Active filters:</span>
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-foreground">
+                Query: &quot;{searchQuery}&quot;
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange("")}
+                  className="hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {statusFilter !== "all" && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-foreground capitalize">
+                Status: {statusFilter}
+                <button
+                  type="button"
+                  onClick={() => handleStatusFilterChange("all")}
+                  className="hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setStatusFilter("all");
+                updateUrlParams("", "all");
+              }}
+              className="text-primary hover:underline font-medium ml-1"
+            >
+              Reset all
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Main View: Kanban OR List */}
+      {viewMode === "kanban" ? (
+        <ApplicationKanban
+          applications={filteredApplications}
+          onSelectApplication={handleSelectApplication}
+          onViewResume={handleViewResume}
+          onStatusChange={handleStatusChange}
+          onDeleteApplication={(app) => setApplicationToDelete(app)}
+          isUpdating={updateStatusMutation.isPending}
+        />
+      ) : (
+        <ApplicationList
+          applications={filteredApplications}
+          onSelectApplication={handleSelectApplication}
+          onViewResume={handleViewResume}
+          onStatusChange={handleStatusChange}
+          onDeleteApplication={(app) => setApplicationToDelete(app)}
+          isUpdating={updateStatusMutation.isPending}
+        />
+      )}
+
+      {/* Application Details Modal */}
+      <ApplicationDetailModal
+        application={selectedApplication}
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setSelectedApplication(null);
+        }}
+        onStatusChange={handleStatusChange}
+        onDelete={(app) => setApplicationToDelete(app)}
+        onViewResume={handleViewResume}
+        isUpdating={updateStatusMutation.isPending}
+      />
+
+      {/* Global Attached Resume PDF Viewer */}
+      <PdfViewer
+        isOpen={resumeViewerState.isOpen}
+        onClose={() =>
+          setResumeViewerState((prev) => ({ ...prev, isOpen: false }))
+        }
+        resumeId={resumeViewerState.resumeId}
+        title={resumeViewerState.title}
+        hasFile={true}
+      />
+
+      {/* Application Withdrawal Confirmation Dialog */}
+      {applicationToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="fixed inset-0"
+            onClick={() => setApplicationToDelete(null)}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-foreground">Withdraw Application?</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Are you sure you want to withdraw your application for{" "}
+              <strong className="text-foreground">
+                {applicationToDelete.jobId && typeof applicationToDelete.jobId === "object"
+                  ? applicationToDelete.jobId.title
+                  : applicationToDelete.job?.title || "this job"}
+              </strong>
+              ? This action will remove the record from your tracker.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setApplicationToDelete(null)}
+                className="h-10 rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleteApplicationMutation.isPending}
+                className="h-10 rounded-xl bg-destructive px-4 text-sm font-semibold text-destructive-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {deleteApplicationMutation.isPending ? "Withdrawing..." : "Yes, Withdraw"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function ApplicationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6 animate-pulse p-4">
+          <div className="h-8 w-48 bg-muted rounded-xl" />
+          <div className="h-24 bg-card border border-border rounded-2xl" />
+        </div>
+      }
+    >
+      <ApplicationsContent />
+    </Suspense>
   );
 }

@@ -30,6 +30,11 @@ class ResumeDTO {
 
       metadata: resume.metadata,
 
+      fileUrl: resume.fileUrl || null,
+      fileType: resume.fileType || null,
+      originalName: resume.originalName || null,
+      hasFile: Boolean(resume.hasFile || resume.fileUrl),
+
       createdAt: resume.createdAt,
       updatedAt: resume.updatedAt,
     };

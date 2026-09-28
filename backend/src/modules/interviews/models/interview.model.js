@@ -26,6 +26,7 @@ const interviewSchema = new mongoose.Schema(
     },
     scheduledAt: { type: Date, required: true, index: true },
     interviewer: { type: String, trim: true, maxlength: 160, default: "" },
+    meetingLink: { type: String, trim: true, maxlength: 500, default: "" },
     notes: { type: String, trim: true, maxlength: 5000, default: "" },
     status: {
       type: String,

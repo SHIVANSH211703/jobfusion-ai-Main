@@ -1,3 +1,5 @@
+const https = require("https");
+const http = require("http");
 const AppError = require("../../../utils/AppError");
 
 const resumeRepository = require("../repositories/resume.repository");
@@ -33,7 +35,33 @@ class ResumeService {
   }
 
   async getUserResumes(userId) {
-    return await resumeRepository.findByUserId(userId);
+    const resumes = await resumeRepository.findByUserId(userId);
+    const ResumeUpload = require("../../resume-upload/models/resumeUpload.model");
+    const uploads = await ResumeUpload.find({
+      user: userId,
+      resume: { $ne: null },
+    })
+      .select("resume fileUrl fileType originalName")
+      .lean();
+
+    const uploadByResumeId = new Map();
+    for (const u of uploads) {
+      if (u.resume) {
+        uploadByResumeId.set(u.resume.toString(), u);
+      }
+    }
+
+    return resumes.map((resume) => {
+      const doc = resume.toObject ? resume.toObject() : { ...resume };
+      const upload = uploadByResumeId.get(doc._id.toString());
+      if (upload) {
+        doc.fileUrl = doc.fileUrl || upload.fileUrl;
+        doc.fileType = doc.fileType || upload.fileType;
+        doc.originalName = doc.originalName || upload.originalName;
+      }
+      doc.hasFile = Boolean(doc.fileUrl || upload);
+      return doc;
+    });
   }
 
   async getResumeById(userId, resumeId) {
@@ -47,7 +75,194 @@ class ResumeService {
       throw new AppError("Unauthorized", 403);
     }
 
-    return resume;
+    const doc = resume.toObject ? resume.toObject() : { ...resume };
+    const ResumeUpload = require("../../resume-upload/models/resumeUpload.model");
+    const upload = await ResumeUpload.findOne({
+      resume: resumeId,
+      user: userId,
+    })
+      .select("fileUrl fileType originalName")
+      .lean();
+
+    if (upload) {
+      doc.fileUrl = doc.fileUrl || upload.fileUrl;
+      doc.fileType = doc.fileType || upload.fileType;
+      doc.originalName = doc.originalName || upload.originalName;
+    }
+    doc.hasFile = Boolean(doc.fileUrl || upload);
+
+    return doc;
+  }
+
+  async getResumeFile(userId, resumeId, isDownload, res) {
+    const resume = await resumeRepository.findById(resumeId);
+
+    if (!resume) {
+      throw new AppError("Resume not found", 404);
+    }
+
+    const ownerId = (resume.user && (resume.user._id || resume.user)).toString();
+    if (ownerId !== userId.toString()) {
+      throw new AppError("Unauthorized", 403);
+    }
+
+    let fileUrl = resume.fileUrl;
+    let fileType = (resume.fileType || "").toLowerCase();
+    let originalName = resume.originalName;
+
+    if (!fileUrl) {
+      const ResumeUpload = require("../../resume-upload/models/resumeUpload.model");
+      let upload = await ResumeUpload.findOne({
+        resume: resumeId,
+        user: userId,
+      });
+
+      if (!upload) {
+        upload = await ResumeUpload.findOne({
+          user: userId,
+        }).sort({ createdAt: -1 });
+      }
+
+      if (upload) {
+        fileUrl = upload.fileUrl;
+        fileType = (upload.fileType || "").toLowerCase();
+        originalName = upload.originalName;
+
+        resumeRepository
+          .update(resumeId, { fileUrl, fileType, originalName })
+          .catch(() => {});
+      }
+    }
+
+    if (!fileUrl) {
+      throw new AppError("No file attached to this resume.", 404);
+    }
+
+    if (!fileType) {
+      if (fileUrl.endsWith(".pdf")) fileType = "pdf";
+      else if (fileUrl.endsWith(".docx")) fileType = "docx";
+      else fileType = "pdf";
+    }
+
+    if (!originalName) {
+      originalName = `${resume.title || "Resume"}.${fileType}`;
+    }
+
+    if (isDownload) {
+      await this.incrementDownload(resumeId).catch(() => {});
+    }
+
+    let contentType = "application/octet-stream";
+    if (fileType === "pdf") {
+      contentType = "application/pdf";
+    } else if (fileType === "docx") {
+      contentType =
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    } else if (fileType === "doc") {
+      contentType = "application/msword";
+    }
+
+    const dispositionType = isDownload ? "attachment" : "inline";
+    const safeFileName = encodeURIComponent(originalName).replace(
+      /['()]/g,
+      escape
+    );
+
+    let streamUrl = fileUrl;
+    if (fileUrl.includes("res.cloudinary.com")) {
+      try {
+        const cloudinary = require("../../../config/cloudinary");
+        const match = fileUrl.match(
+          /\/(?:image|raw)\/upload\/(?:v\d+\/)?(.+?)(?:\.([a-zA-Z0-9]+))?$/
+        );
+        if (match) {
+          const publicId = match[1];
+          const format = match[2] || fileType || "pdf";
+          streamUrl = cloudinary.utils.private_download_url(publicId, format, {
+            resource_type: "image",
+            type: "upload",
+          });
+        }
+      } catch {
+        // Fallback to direct fileUrl if signature generation fails
+      }
+    }
+
+    const pipeFile = (targetUrl, redirectCount = 0) => {
+      if (redirectCount > 5) {
+        if (!res.headersSent) {
+          return res.status(502).json({
+            success: false,
+            message: "Too many redirects fetching file.",
+          });
+        }
+        return;
+      }
+
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(targetUrl);
+      } catch {
+        if (!res.headersSent) {
+          return res.status(500).json({
+            success: false,
+            message: "Invalid file target URL.",
+          });
+        }
+        return;
+      }
+
+      const client = parsedUrl.protocol === "https:" ? https : http;
+      client
+        .get(targetUrl, (stream) => {
+          if (
+            stream.statusCode &&
+            [301, 302, 307, 308].includes(stream.statusCode) &&
+            stream.headers.location
+          ) {
+            const redirectUrl = new URL(
+              stream.headers.location,
+              targetUrl
+            ).toString();
+            stream.resume();
+            return pipeFile(redirectUrl, redirectCount + 1);
+          }
+
+          if (stream.statusCode && stream.statusCode >= 400) {
+            stream.resume();
+            if (!res.headersSent) {
+              return res.status(502).json({
+                success: false,
+                message: "Failed to fetch file from storage provider.",
+              });
+            }
+            return;
+          }
+
+          if (!res.headersSent) {
+            res.setHeader("Content-Type", contentType);
+            res.setHeader(
+              "Content-Disposition",
+              `${dispositionType}; filename="${safeFileName}"; filename*=UTF-8''${safeFileName}`
+            );
+            if (stream.headers["content-length"]) {
+              res.setHeader("Content-Length", stream.headers["content-length"]);
+            }
+          }
+
+          stream.pipe(res);
+        })
+        .on("error", () => {
+          if (!res.headersSent) {
+            res.status(500).json({
+              success: false,
+              message: "Error streaming resume file.",
+            });
+          }
+        });
+    };
+
+    pipeFile(streamUrl);
   }
 
   async updateResume(userId, resumeId, updateData) {
