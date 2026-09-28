@@ -41,5 +41,14 @@ export interface AuthResponse {
   message: string;
   data: {
     user: User;
+    accessToken?: string;
+  };
+}
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
+  data: {
+    accessToken: string;
   };
 }

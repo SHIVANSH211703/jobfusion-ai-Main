@@ -6,6 +6,7 @@ import type {
   ChangePasswordRequest,
   ForgotPasswordRequest,
   LoginRequest,
+  RefreshTokenResponse,
   RegisterRequest,
   ResetPasswordRequest,
   User,
@@ -58,13 +59,11 @@ class AuthService {
   }
 
   async refreshToken(
-    refreshToken: string
-  ): Promise<AuthResponse> {
-    const response = await axiosInstance.post<AuthResponse>(
+    refreshToken?: string
+  ): Promise<RefreshTokenResponse> {
+    const response = await axiosInstance.post<RefreshTokenResponse>(
       API.AUTH.REFRESH_TOKEN,
-      {
-        refreshToken,
-      }
+      refreshToken ? { refreshToken } : {}
     );
 
     return response.data;

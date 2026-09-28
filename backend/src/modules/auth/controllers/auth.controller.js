@@ -21,6 +21,7 @@ class AuthController {
       message: "User registered successfully",
       data: {
         user: result.user,
+        accessToken: result.tokens.accessToken,
       },
     });
   });
@@ -41,6 +42,7 @@ class AuthController {
       message: "Login successful",
       data: {
         user: result.user,
+        accessToken: result.tokens.accessToken,
       },
     });
   });
@@ -68,17 +70,38 @@ class AuthController {
     res.status(200).json({
       success: true,
       message: "Access token refreshed successfully",
+      data: {
+        accessToken: result.accessToken,
+      },
     });
   });
 
   logout = asyncHandler(async (req, res) => {
-    const result = await authService.logout(req.user.id);
+    let userId = req.user?.id;
+
+    if (!userId && req.cookies?.refreshToken) {
+      try {
+        const { verifyRefreshToken } = require("../../../utils/jwt");
+        const decoded = verifyRefreshToken(req.cookies.refreshToken);
+        userId = decoded?.id;
+      } catch (_) {
+        // safely ignore invalid or expired refresh token
+      }
+    }
+
+    if (userId) {
+      try {
+        await authService.logout(userId);
+      } catch (_) {
+        // safely ignore if session was already removed
+      }
+    }
 
     clearAuthCookies(res);
 
     res.status(200).json({
       success: true,
-      message: result.message,
+      message: "Logout successful",
     });
   });
 

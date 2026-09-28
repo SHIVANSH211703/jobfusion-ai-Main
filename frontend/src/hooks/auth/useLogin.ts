@@ -22,11 +22,10 @@ export function useLogin() {
       authService.login(payload),
 
     onSuccess: async (response) => {
-      const { user } = response.data;
+      const { user, accessToken } = response.data;
 
-      // Backend has already set the HttpOnly cookies.
-      // Just update the client auth state.
-      login();
+      // Update the client auth state with accessToken for mobile fallback
+      login(accessToken ?? null);
 
       // Cache the current user
       queryClient.setQueryData(

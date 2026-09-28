@@ -22,10 +22,10 @@ export function useRegister() {
       authService.register(payload),
 
     onSuccess: async (response) => {
-      const { user } = response.data;
+      const { user, accessToken } = response.data;
 
-      // Backend already stored the cookies
-      login();
+      // Update the client auth state with accessToken for mobile fallback
+      login(accessToken ?? null);
 
       // Cache current user
       queryClient.setQueryData(

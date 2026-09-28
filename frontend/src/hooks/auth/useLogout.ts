@@ -36,15 +36,30 @@ export function useLogout() {
     },
 
     onError: (error) => {
+      // Gracefully clear client-side auth state
+      logout();
+      queryClient.clear();
+      queryClient.removeQueries({
+        queryKey: CURRENT_USER_QUERY_KEY,
+      });
+
       if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          // Session already invalid on server; navigate cleanly without showing error toast
+          router.replace("/login");
+          return;
+        }
+
         toast.error(
           error.response?.data?.message ??
             "Logout failed"
         );
+        router.replace("/login");
         return;
       }
 
       toast.error("Something went wrong.");
+      router.replace("/login");
     },
   });
 }
